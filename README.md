@@ -1,11 +1,10 @@
-[![Custom badge](https://img.shields.io/endpoint?logo=Strava&logoColor=orange&style=for-the-badge&url=https%3A%2F%2Fmarcoveeneman-badges.herokuapp.com%2Fstrava)](https://www.strava.com/clubs/804672)
-[![Custom badge](https://github.com/WouterJD/FortiusANT/blob/master/pythoncode/sponsor36.bmp)](https://github.com/sponsors/WouterJD)
-
 # FortiusANT
 FortiusANT enables a pre-smart Tacx trainer (usb- or ANT-connected) to communicate with TrainerRoad, Rouvy or Zwift through ANT.
 
 FortiusANT is running on the computer (Windows, Linux or MacOS) where the trainer is connected and broadcasts the ANT+ signal, using a dongle, to another computer or tablet.
 You might also run TrainerRoad or Zwift on the same computer and then two ANT+ dongles on the same computer are required.
+
+Important: the legacy Node.js/Bleno BLE bridge has been retired and disabled. The active runtime path is the Python-native transport stack, including ANT/USB and Python-side DirCon/WFTNP integration where applicable. The files under `node/` are kept only as historical reference and are not used by the active runtime.
 
 ## Supported Tacx trainers
 USB: Tacx Flow, Fortius, i-Flow, i-Magic with T1902, T1904, T1932, T1942 head units
@@ -24,7 +23,7 @@ The CTP can be run on another computer or Smartphone.
 # User manual and version information
 Refer [wiki](https://github.com/WouterJD/FortiusANT/wiki) first, then ask questions raising an issue. Succes!
 
-For inspiration, visit the [Raspberry Pi Hall of Fame](https://github.com/WouterJD/FortiusANT/wiki/Raspberry-Pi-Hall-of-Fame) and [The Tacx Training Cave](https://github.com/WouterJD/FortiusANT/wiki/The-Tacx-Training-Cave)
+For inspiration, visit the [Raspberry Pi Hall of Fame](https://github.com/WouterJD/FortiusANT/wiki/Raspberry-Pi-Hall-of-Fame) and [The Tacx Training Cave](https://github.com/WouterJD/FortiusANT/wiki/The-Tacx-Training-Cave).
 
 ![image](https://raw.githubusercontent.com/WouterJD/FortiusANT/master/supportfiles/FortiusAntWorld.jpg)
 
@@ -37,4 +36,4 @@ Copyright (c) 2020...2023 [Wouter Dubbeldam](https://github.com/WouterJD). Pleas
 # Sponsor
 [![Custom badge](https://github.com/WouterJD/FortiusANT/blob/master/pythoncode/sponsor36.bmp)](https://github.com/sponsors/WouterJD)
 
-If you like to use FortiusAnt; please leave a note on the [put yourself on the FortiusAnt map](https://github.com/WouterJD/FortiusANT/issues/14) page; thereby a sponsorship would be another great acknowledgement! Questions, problems and suggestions can be reported as an issue on github.
+If you like to use FortiusAnt; please leave a note on the [put yourself on the FortiusAnt map](https://github.com/WouterJD/FortiusANT/issues/14) page; thereby a sponsorship would be another great way to support the project.
