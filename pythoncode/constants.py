@@ -16,6 +16,9 @@ __version__ = "2022-08-10"
 # 2021-01-07    UseMultiProcessing moved here
 # 2020-12-20    Constants moved to constants.py
 #-------------------------------------------------------------------------------
+# Legacy Node.js/Bleno bridge has been retired. The supported runtime path is the
+# Python-only transport stack (ANT/USB and DirCon/WFTNP in Python).
+#-------------------------------------------------------------------------------
 mode_Basic          = 0     # Basic Resistance
 mode_Power          = 1     # Target Power
 mode_Grade          = 2     # Target Resistance
@@ -24,16 +27,16 @@ mode_Grade          = 2     # Target Resistance
 # 'directives' to exclude parts from the code
 # For example for small footprint implementations
 #-------------------------------------------------------------------------------
-UseBluetooth        = True
-UseGui              = True	    # Can be modified to force no-GUI
-UseMultiProcessing  = True      # Production version can be either False or True
-OnRaspberry         = True      # We're running on Raspberry Pi
+UseBluetooth        = False  # legacy Node/BLE bridge disabled
+UseGui              = True    # Can be modified to force no-GUI
+UseMultiProcessing  = True    # Production version can be either False or True
+OnRaspberry         = True    # We're running on Raspberry Pi
 UsePythonLogging    = True
 
 try:
     from wx import EVT_CLOSE    # Just checking presence
 except:
-    UseGui          = False  	# no wx, no GUI
+    UseGui          = False     # no wx, no GUI
 
 try:
                     # this module is a preinstalled module on Raspbian
@@ -67,7 +70,7 @@ mile            = 1.609344  # km
 Transmission = "34-50*x34-30-27-25-23-21-19*-17-15-13-11"      # No spaces here!
 
 help_A = "Pedal Stroke Analysis."
-help_B = "ANT DeviceNumber range Base, making multiple FortiusAnt sessions unique."
+help_B = "Deprecated: legacy nodejs BLE advertising path is disabled."
 help_C = "ANT+ Control Command (#1/#2)"
 help_D = "Select one specific antDongle (perhaps with a non-standard deviceID)."
 help_G = "Modify the requested grade with a factor/factorDownhill."
@@ -80,8 +83,8 @@ help_P = "Power mode has preference over Resistance mode (for 30 seconds)."
 help_S = "Use Tacx Steering interface over BLE"
 help_R = "The runoff procedure can be customized: maxSpeed/dip/minSpeed/targetTime/power."
 help_a = "Automatically start; “Locate HW” and “Start” if the required devices were found."
-help_b = "Advertise FortiusAnt as “FortiusAnt Trainer” on a Bluetooth Low Energy dongle, using nodejs."
-help_bb= "Advertise FortiusAnt as “FortiusAnt Trainer” on a Bluetooth Low Energy dongle, using bless."
+help_b = "Deprecated: legacy nodejs BLE advertising path is disabled."
+help_bb= "Deprecated: legacy bless BLE advertising path is disabled."
 help_c = "Calibrate the rolling resistance for magnetic brake."
 help_d = "Create logfile with debugging data."
 help_e = "Operate as homeTrainer (excersize bike); up/down increments/decrements power with 10%%."
