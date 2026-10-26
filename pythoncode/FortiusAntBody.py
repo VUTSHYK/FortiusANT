@@ -257,7 +257,6 @@ import TCXexport
 import usbTrainer
 
 import bleBless
-import bleDongle
 
 PrintWarnings = False   # Print warnings even when logging = off
 CycleTimeFast = 0.02    # TRAINER- SHOULD WRITE THEN READ 70MS LATER REALLY
@@ -278,16 +277,11 @@ def Initialize(pclv):
     # --------------------------------------------------------------------------
     # Create Bluetooth Low Energy interface
     # --------------------------------------------------------------------------
-    if clv.bless:
-        clv.ble = True                          # Since this is the only place
-                                                # where .bless is used!!
-        bleCTP  = bleBless.clsFTMS_bless(True)  # bless implementation
-
-    elif clv.ble:
-        bleCTP = bleDongle.clsBleCTP(clv)       # nodejs implementation
-
+    if clv.ble or clv.bless:
+        clv.ble = True
+        bleCTP = bleBless.clsFTMS_bless(True)  # Native Python BLE only
     else:
-        bleCTP =  bleBless.clsFTMS_bless(False) # Create data structure,
+        bleCTP = bleBless.clsFTMS_bless(False) # Create data structure,
                                                 # e.g. so that .Message exists
                                                 # No methods may be called
 
