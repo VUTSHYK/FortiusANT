@@ -77,6 +77,7 @@ json_Bluetooth          = 'bluetooth'
 json_ble                = 'enable'            # initial implementation with node.js only, for compatibility
 json_nodejs             = 'nodejs'
 json_bless              = 'bless'
+json_wftnpIdleTimeout   = 'wftnp idle timeout'
 
 json_Ant                = 'ant'
 json_antDeviceID        = 'device ID'
@@ -195,6 +196,7 @@ def ReadJsonFile (args):
                         if   q == json_ble:                 args.ble                  = w[q]    # For compatibility
                         elif q == json_nodejs:              args.ble                  = w[q]
                         elif q == json_bless:               args.bless                = w[q]
+                        elif q == json_wftnpIdleTimeout:    args.wftnpIdleTimeout     = w[q]
                         else: logfile.Console ('Json file contains unknown parameter %s %s' % (p, q))
 
                 elif p == json_General:
@@ -400,6 +402,7 @@ if constants.UseGui:
             #json_ble is not written anymore since #366
             json_nodejs:                DialogWindow.cb_b   .GetValue(),
             json_bless:                 DialogWindow.cb_bb  .GetValue(),
+            json_wftnpIdleTimeout:      getattr(clv, 'wftnpIdleTimeout', 3600),
         }
 
         data[json_Ant] = {
