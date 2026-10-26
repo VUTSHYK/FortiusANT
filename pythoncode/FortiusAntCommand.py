@@ -271,11 +271,17 @@ class CommandLineVariables(object):
         # Overwrite from json file if present
         #-----------------------------------------------------------------------
         self.args  = parser.parse_args()
-        cliWftnpTimeout = self.args.wftnpIdleTimeout if '--wftnp-idle-timeout' in sys.argv else None
+        cliWftnpTimeout = self.args.wftnpIdleTimeout if any(arg == '--wftnp-idle-timeout' or arg.startswith('--wftnp-idle-timeout=') for arg in sys.argv[1:]) else None
         jsonLoaded = settings.ReadJsonFile(self.args)
         if cliWftnpTimeout is not None:
             self.args.wftnpIdleTimeout = cliWftnpTimeout
-        if not isinstance(self.args.wftnpIdleTimeout, int) or isinstance(self.args.wftnpIdleTimeout, bool) or self.args.wftnpIdleTimeout <= 0:
+        try:
+            if isinstance(self.args.wftnpIdleTimeout, bool):
+                raise ValueError('boolean is not a timeout')
+            self.args.wftnpIdleTimeout = int(self.args.wftnpIdleTimeout)
+        except (TypeError, ValueError):
+            parser.error('WFTNP idle timeout must be a positive integer (seconds)')
+        if self.args.wftnpIdleTimeout <= 0:
             parser.error('WFTNP idle timeout must be a positive integer (seconds)')
         self.wftnpIdleTimeout = self.args.wftnpIdleTimeout
 
