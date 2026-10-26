@@ -49,10 +49,20 @@ class WftnpFTMSTransport:
         self.server = None
         self._publisher = None
 
-    def _handle_control_write(self, data):
-        if self.on_control_write is not None:
-            return self.on_control_write(data)
-        return self.control_point.handle(data)
+    async def _handle_control_write(self, data):
+        """Send the FTMS result as a notification, not as a characteristic value.
+
+        WFTNP WRITE acknowledgement confirms transport delivery only.
+        """
+        result = (self.on_control_write(data) if self.on_control_write is not None
+                  else self.control_point.handle(data))
+        if asyncio.iscoroutine(result):
+            result = await result
+        if not isinstance(result, bytes) or len(result) != 3 or result[0] != 0x80:
+            raise ValueError("control handler must return an FTMS response")
+        if self.server is not None:
+            await self.server.notify_characteristic(CONTROL_POINT, result)
+        return None
 
     async def start(self):
         if self.server is not None:
