@@ -7,9 +7,9 @@ jobs:
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v4
-    - uses: actions/setup-python@v5
+    - uses: actions/setup-python@v6
       with:
-        python-version: 3.7
+        python-version: '3.11'
     - name: Build Windows Executables
       shell: cmd
       run: |
@@ -25,9 +25,9 @@ jobs:
     runs-on: macos-latest
     steps:
     - uses: actions/checkout@v4
-    - uses: actions/setup-python@v5
+    - uses: actions/setup-python@v6
       with:
-        python-version: 3.7
+        python-version: '3.11'
     - name: Build macOS Executable
       run: |
         ci/macos/build
