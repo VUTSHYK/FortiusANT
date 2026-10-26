@@ -1,5 +1,6 @@
 """Tests for the WFTNP transport boundary without network dependencies."""
 
+import asyncio
 import struct
 import sys
 import unittest
@@ -22,12 +23,13 @@ class TestWftnpTransport(unittest.TestCase):
 
     def test_control_write_requires_control_ownership(self):
         transport = WftnpFTMSTransport()
-        self.assertEqual(transport._handle_control_write(bytes((0x05, 230, 0))), bytes((0x80, 0x05, 0x05)))
+        self.assertIsNone(asyncio.run(transport._handle_control_write(bytes((0x05, 230, 0)))))
+        self.assertIsNone(transport.bridge.take_command())
 
     def test_control_write_is_delegated(self):
         seen = []
-        transport = WftnpFTMSTransport(on_control_write=lambda data: seen.append(data))
-        transport._handle_control_write(b"\x00")
+        transport = WftnpFTMSTransport(on_control_write=lambda data: (seen.append(data), b"\x80\x00\x01")[1])
+        asyncio.run(transport._handle_control_write(b"\x00"))
         self.assertEqual(seen, [b"\x00"])
 
     def test_invalid_interval(self):
