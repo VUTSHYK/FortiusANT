@@ -1,21 +1,48 @@
-name: FortiusANT transport cleanup tests
+name: FortiusANT CI
+
 on:
-  push:
-    branches: [cleanup/remove-legacy-node-dircon]
   pull_request:
     branches: [master]
+  push:
+    branches: [master]
   workflow_dispatch:
+
+concurrency:
+  group: fortiusant-ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   static-tests:
+    name: Tests (${{ matrix.os }}, Python ${{ matrix.python-version }})
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, ubuntu-24.04-arm, windows-latest]
         python-version: ['3.11', '3.12', '3.13']
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Compile and test transport cleanup
+      - name: Run unit tests
         run: python -m unittest discover -s tests -v
+
+  build-windows:
+    name: Build Windows executables
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+      - name: Build Windows executables
+        shell: cmd
+        run: ci/windows/build.bat
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Windows artifacts
+          path: |
+            pythoncode\dist\FortiusANT.exe
+            pythoncode\dist\ExplorANT.exe
