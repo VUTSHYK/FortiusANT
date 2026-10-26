@@ -4,7 +4,8 @@
     },
     "bluetooth": {
         "bless": false,
-        "nodejs": false
+        "nodejs": false,
+        "wftnp idle timeout": 3600
     },
     "general": {
         "autostart": true,
