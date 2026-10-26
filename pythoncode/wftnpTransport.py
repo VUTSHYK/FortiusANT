@@ -81,6 +81,9 @@ class WftnpFTMSTransport:
         server = WftnpServer(
             host=self.host, port=self.port,
             services=[ServiceSpec(FTMS_SERVICE, (bike, control))],
+            max_connections=1,
+            idle_timeout=3600.0,
+            on_disconnect=self.control_point.release,
         )
         await server.start()
         self.server = server
