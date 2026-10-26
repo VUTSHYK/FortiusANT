@@ -207,6 +207,9 @@ class CommandLineVariables(object):
         # Ref: https://docs.python.org/3/library/argparse.html
         #-----------------------------------------------------------------------
         parser = argparse.ArgumentParser(description='FortiusAnt exchanges data between USB or ANT+ Tacx trainer with an ANT+ or BLE Cycling Training Program')
+        parser.add_argument('--wftnp-idle-timeout', dest='wftnpIdleTimeout', type=int,
+                            default=3600, metavar='SECONDS',
+                            help='WFTNP client inactivity timeout in seconds (default: 3600)')
         parser.add_argument   ('-a', dest='autostart',                                  help=constants.help_a,  required=False, action='store_true')
         if UseGui:
            parser.add_argument('-A', dest='PedalStrokeAnalysis',                        help=constants.help_A,  required=False, action='store_true')
@@ -268,7 +271,13 @@ class CommandLineVariables(object):
         # Overwrite from json file if present
         #-----------------------------------------------------------------------
         self.args  = parser.parse_args()
+        cliWftnpTimeout = self.args.wftnpIdleTimeout if '--wftnp-idle-timeout' in sys.argv else None
         jsonLoaded = settings.ReadJsonFile(self.args)
+        if cliWftnpTimeout is not None:
+            self.args.wftnpIdleTimeout = cliWftnpTimeout
+        if not isinstance(self.args.wftnpIdleTimeout, int) or isinstance(self.args.wftnpIdleTimeout, bool) or self.args.wftnpIdleTimeout <= 0:
+            parser.error('WFTNP idle timeout must be a positive integer (seconds)')
+        self.wftnpIdleTimeout = self.args.wftnpIdleTimeout
 
         #-----------------------------------------------------------------------
         # If nothing specified at all, use sensible defaults
