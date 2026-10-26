@@ -20,10 +20,9 @@ class TestWftnpTransport(unittest.TestCase):
         data = encode_indoor_bike_data(TrainerTelemetry(0, 0, -20))
         self.assertEqual(struct.unpack("<HHHh", data)[3], -20)
 
-    def test_control_write_requires_handler(self):
+    def test_control_write_requires_control_ownership(self):
         transport = WftnpFTMSTransport()
-        with self.assertRaises(ValueError):
-            transport._handle_control_write(b"\x05\xe6\x00")
+        self.assertEqual(transport._handle_control_write(bytes((0x05, 230, 0))), bytes((0x80, 0x05, 0x05)))
 
     def test_control_write_is_delegated(self):
         seen = []
