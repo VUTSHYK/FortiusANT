@@ -4,7 +4,7 @@ FortiusANT enables a pre-smart Tacx trainer (usb- or ANT-connected) to communica
 FortiusANT is running on the computer (Windows, Linux or MacOS) where the trainer is connected and broadcasts the ANT+ signal, using a dongle, to another computer or tablet.
 You might also run TrainerRoad or Zwift on the same computer and then two ANT+ dongles on the same computer are required.
 
-Important: the legacy Node.js/Bleno BLE bridge has been retired and disabled. The active runtime path is the Python-native transport stack, including ANT/USB and Python-side DirCon/WFTNP integration where applicable. The files under `node/` are kept only as historical reference and are not used by the active runtime.
+Important: legacy Node.js/Bleno and the experimental Python TCP/DirCon server are removed from the runtime. Bluetooth uses the native Python Bless implementation (`bleBless.py`); ANT/USB support remains. Any remaining historical files under `node/` are not part of the runtime.
 
 ## Supported Tacx trainers
 USB: Tacx Flow, Fortius, i-Flow, i-Magic with T1902, T1904, T1932, T1942 head units
