@@ -38,6 +38,30 @@ class TestFTMSBridge(unittest.TestCase):
         bridge.submit_command(command)
         self.assertEqual(bridge.take_command(), command)
 
+    def test_commands_keep_fifo_order(self):
+        bridge = FTMSBridge()
+        first = TrainerCommand(TrainerMode.POWER, target_power_watts=150)
+        second = TrainerCommand(TrainerMode.POWER, target_power_watts=250)
+        bridge.submit_command(first)
+        bridge.submit_command(second)
+        self.assertEqual(bridge.take_command(), first)
+        self.assertEqual(bridge.take_command(), second)
+        self.assertIsNone(bridge.take_command())
+
+    def test_queue_is_bounded(self):
+        bridge = FTMSBridge()
+        command = TrainerCommand(TrainerMode.POWER, target_power_watts=100)
+        for _ in range(64):
+            bridge.submit_command(command)
+        with self.assertRaises(OverflowError):
+            bridge.submit_command(command)
+
+    def test_telemetry_snapshot(self):
+        bridge = FTMSBridge()
+        bridge.set_athlete_data(130)
+        bridge.set_trainer_data(25.0, 80.0, 180.0)
+        self.assertEqual(bridge.get_telemetry(), bridge.telemetry)
+
     def test_invalid_command_rejected(self):
         with self.assertRaises(TypeError):
             FTMSBridge().submit_command("250 watts")
