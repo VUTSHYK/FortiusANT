@@ -9,6 +9,7 @@ import struct
 from uuid import UUID
 
 from ftmsBridge import FTMSBridge
+from ftmsControlPoint import FTMSControlPoint
 
 FTMS_SERVICE = UUID("00001826-0000-1000-8000-00805f9b34fb")
 INDOOR_BIKE_DATA = UUID("00002ad2-0000-1000-8000-00805f9b34fb")
@@ -40,6 +41,7 @@ class WftnpFTMSTransport:
         if interval <= 0:
             raise ValueError("interval must be positive")
         self.bridge = bridge if bridge is not None else FTMSBridge()
+        self.control_point = FTMSControlPoint(self.bridge)
         self.on_control_write = on_control_write
         self.host = host
         self.port = port
@@ -48,9 +50,9 @@ class WftnpFTMSTransport:
         self._publisher = None
 
     def _handle_control_write(self, data):
-        if self.on_control_write is None:
-            raise ValueError("FTMS control-point handler is not configured")
-        return self.on_control_write(data)
+        if self.on_control_write is not None:
+            return self.on_control_write(data)
+        return self.control_point.handle(data)
 
     async def start(self):
         if self.server is not None:
