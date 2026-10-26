@@ -57,7 +57,6 @@ import antPWR               as pwr
 import antSCS               as scs
 import bleBless
 import bleBlessClass
-import bleDongle
 import debug
 import logfile
 import FortiusAntBody
@@ -618,7 +617,6 @@ def mainProgram():
         logfile.Write(s % ('antSCS',                    scs.__version__ ))
         logfile.Write(s % ('bleBless',             bleBless.__version__ ))
         logfile.Write(s % ('bleBlessClass',   bleBlessClass.__version__ ))
-        logfile.Write(s % ('bleDongle',           bleDongle.__version__ ))
         logfile.Write(s % ('constants',           constants.__version__ ))
         logfile.Write(s % ('debug',                   debug.__version__ ))
         logfile.Write(s % ('FortiusAntBody', FortiusAntBody.__version__ ))
