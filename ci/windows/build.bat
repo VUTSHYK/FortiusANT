@@ -36,7 +36,7 @@ python -m pip install --upgrade pip ^
   || exit /b 1
 pip install pyinstaller ^
   || exit /b 1
-pip install -r requirements.txt ^
+python -m pip install --only-binary=wxPython -r requirements.txt ^
   || exit /b 1
 
 popd
