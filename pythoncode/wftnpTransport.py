@@ -37,7 +37,9 @@ class WftnpFTMSTransport:
     """
 
     def __init__(self, bridge=None, *, host="127.0.0.1", port=36866,
-                 on_control_write=None, interval=0.25):
+                 on_control_write=None, interval=0.25, idle_timeout=3600):
+        if idle_timeout <= 0:
+            raise ValueError('idle_timeout must be positive')
         if interval <= 0:
             raise ValueError("interval must be positive")
         self.bridge = bridge if bridge is not None else FTMSBridge()
@@ -46,6 +48,7 @@ class WftnpFTMSTransport:
         self.host = host
         self.port = port
         self.interval = interval
+        self.idle_timeout = idle_timeout
         self.server = None
         self._publisher = None
 
@@ -82,7 +85,7 @@ class WftnpFTMSTransport:
             host=self.host, port=self.port,
             services=[ServiceSpec(FTMS_SERVICE, (bike, control))],
             max_connections=1,
-            idle_timeout=3600.0,
+            idle_timeout=self.idle_timeout,
             on_disconnect=self.control_point.release,
         )
         await server.start()
