@@ -32,6 +32,19 @@ class TestWftnpTransport(unittest.TestCase):
         asyncio.run(transport._handle_control_write(b"\x00"))
         self.assertEqual(seen, [b"\x00"])
 
+    def test_control_response_is_notified(self):
+        transport = WftnpFTMSTransport()
+        seen = []
+
+        class FakeServer:
+            async def notify_characteristic(self, uuid, value):
+                seen.append((uuid, value))
+
+        transport.server = FakeServer()
+        asyncio.run(transport._handle_control_write(b"\x00"))
+        self.assertEqual(len(seen), 1)
+        self.assertEqual(seen[0][1], b"\x80\x00\x01")
+
     def test_invalid_interval(self):
         with self.assertRaises(ValueError):
             WftnpFTMSTransport(interval=0)
