@@ -13,7 +13,7 @@ try:
 except ImportError:
     Endpoint = WftnpClient = None
 from ftmsBridge import TrainerMode
-from wftnpTransport import CONTROL_POINT, INDOOR_BIKE_DATA, WftnpFTMSTransport
+from wftnpTransport import CONTROL_POINT, INDOOR_BIKE_DATA, FTMS_SERVICE, WftnpFTMSTransport
 
 
 @unittest.skipUnless(WftnpClient is not None, "py-wftnp not installed")
@@ -30,6 +30,8 @@ class TestWftnpTcpIntegration(unittest.IsolatedAsyncioTestCase):
                                      heartbeat_interval=None)
                 await client.start()
                 await client.wait_ready(timeout=3)
+                characteristics = await client.discover_characteristics(FTMS_SERVICE)
+                self.assertTrue(characteristics)
                 async with await client.subscribe(INDOOR_BIKE_DATA):
                     await asyncio.sleep(0.05)
                 await client.stop()
