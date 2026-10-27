@@ -1021,6 +1021,9 @@ def Tacx2DongleSub(FortiusAntGui, Restart):
                                         idle_timeout=clv.wftnpIdleTimeout)
             wftnpRuntime.start()
             logfile.Console('WFTNP FTMS listening on %s:%s' % (clv.wftnpHost, clv.wftnpPort))
+            if getattr(TacxTrainer, 'WftnpDeviceNumber', 0):
+                wftnpRuntime.set_trainer_identity(
+                    'Tacx Vortex %d' % TacxTrainer.WftnpDeviceNumber)
 
         if clv.manualGrade:
             TacxTrainer.SetGrade(0)
@@ -1409,6 +1412,9 @@ def Tacx2DongleSub(FortiusAntGui, Restart):
                 # the bleCTP object.
                 #---------------------------------------------------------------
                 if wftnpRuntime is not None:
+                    vortex_number = getattr(TacxTrainer, 'WftnpDeviceNumber', 0)
+                    if vortex_number:
+                        wftnpRuntime.set_trainer_identity('Tacx Vortex %d' % vortex_number)
                     wftnpCTP = wftnpRuntime.adapter
                     wftnpCTP.SetAthleteData(HeartRate)
                     wftnpCTP.SetTrainerData(TacxTrainer.SpeedKmh,
