@@ -30,7 +30,7 @@ class WftnpRuntime:
         self._thread = threading.Thread(target=self._run, name="wftnp-server", daemon=True)
         self._thread.start()
         if not self._ready.wait(timeout):
-            self.stop()
+            # Startup may still be blocked; do not claim the thread stopped.
             raise TimeoutError("WFTNP server startup timed out")
         if self._error is not None:
             error = self._error
