@@ -100,6 +100,9 @@ class CommandLineVariables(object):
 
     antDeviceID     = None       # introduced 2020-12-10; Use this usb antDongle type only
     autostart       = False
+    wftnp           = False
+    wftnpHost       = '0.0.0.0'
+    wftnpPort       = 36866
     ble             = False      # introduced 2020-12-18; Bluetooth support
     DeviceNumberBase= False      # introduced 2021-02-22; Issue #260
     calibrate       = True
@@ -207,6 +210,9 @@ class CommandLineVariables(object):
         # Ref: https://docs.python.org/3/library/argparse.html
         #-----------------------------------------------------------------------
         parser = argparse.ArgumentParser(description='FortiusAnt exchanges data between USB or ANT+ Tacx trainer with an ANT+ or BLE Cycling Training Program')
+        parser.add_argument('--wftnp', action='store_true', help='Enable WFTNP FTMS TCP server')
+        parser.add_argument('--wftnp-host', default='0.0.0.0', help='WFTNP bind address (default: all interfaces)')
+        parser.add_argument('--wftnp-port', type=int, default=36866, help='WFTNP TCP port')
         parser.add_argument('--wftnp-idle-timeout', dest='wftnpIdleTimeout', type=int,
                             default=3600, metavar='SECONDS',
                             help='WFTNP client inactivity timeout in seconds (default: 3600)')
@@ -284,6 +290,11 @@ class CommandLineVariables(object):
         if self.args.wftnpIdleTimeout <= 0:
             parser.error('WFTNP idle timeout must be a positive integer (seconds)')
         self.wftnpIdleTimeout = self.args.wftnpIdleTimeout
+        self.wftnp = bool(self.args.wftnp)
+        self.wftnpHost = self.args.wftnp_host
+        self.wftnpPort = self.args.wftnp_port
+        if not 1 <= self.wftnpPort <= 65535:
+            parser.error('WFTNP port must be between 1 and 65535')
 
         #-----------------------------------------------------------------------
         # If nothing specified at all, use sensible defaults
