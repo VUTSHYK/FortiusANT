@@ -222,7 +222,7 @@ class CommandLineVariables(object):
         else:
            parser.add_argument('-A', dest='A_IgnoredIfDefined',                         help=argparse.SUPPRESS, required=False, action='store_true')
         if UseBluetooth:
-           parser.add_argument('-b', dest='ble',                                        help=constants.help_b,  required=False, action='store_true')
+           parser.add_argument('-b', dest='ble',                                        help='Legacy -b alias for Python Bless BLE',  required=False, action='store_true')
            parser.add_argument('-bb', dest='bless',                                     help=constants.help_bb, required=False, action='store_true')
         else:
            pass # If -b is requested but not available, then an error is appropriate
@@ -347,8 +347,8 @@ class CommandLineVariables(object):
         #-----------------------------------------------------------------------
         self.autostart              = self.args.autostart
         if UseBluetooth:
-            self.ble                = self.args.ble         # BLE using NodeJS
-            self.bless              = self.args.bless       # BLE using bless
+            self.ble                = False                 # Node/Bleno removed; -b is a Bless alias
+            self.bless              = self.args.bless or self.args.ble  # -b and -bb use Bless
         if UseGui:
             self.gui                = self.args.gui
         self.homeTrainer            = self.args.homeTrainer # Exersize Bike
@@ -379,10 +379,7 @@ class CommandLineVariables(object):
         if (self.homeTrainer or self.manual or self.manualGrade) and self.SimulateTrainer:
             logfile.Console("-e/-m/-M and -s both specified, most likely for program test purpose")
 
-        if self.ble and self.bless:
-            logfile.Console("-b and -bb both specified, -bb is selected")
-            self.ble = False
-
+        
         #-----------------------------------------------------------------------
         # Get DeviceNumberBase
         #-----------------------------------------------------------------------
