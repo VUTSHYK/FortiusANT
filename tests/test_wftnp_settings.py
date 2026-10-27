@@ -1,5 +1,6 @@
 """Read actual FortiusAntSettings.json through the production settings loader."""
 import json
+import types
 import sys
 import tempfile
 import unittest
@@ -8,6 +9,7 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "pythoncode"))
+sys.modules.setdefault('lib_programname', types.ModuleType('lib_programname'))
 import settings
 
 
