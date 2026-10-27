@@ -62,13 +62,12 @@ class TestSimulatedTrainerWftnp(unittest.IsolatedAsyncioTestCase):
                     CONTROL_POINT, b"\x11\x00\x00" + grade.to_bytes(2, "little", signed=True)
                     + b"\x00\x00")
                 response = (await asyncio.wait_for(anext(control), 3)).value
-                self.assertEqual(response[:2], b"\x80\x11")
-                if response[2] == 1:
-                    self.assertTrue(runtime.adapter.Refresh())
-                    self.assertEqual(runtime.adapter.TargetMode, mode_Grade)
-                    trainer.SetGrade(runtime.adapter.TargetGrade)
-                    self.assertEqual(trainer.TargetMode, mode_Grade)
-                    self.assertAlmostEqual(trainer.TargetGrade, 5.0)
+                self.assertEqual(response, b"\x80\x11\x01", "FTMS SIM command must succeed")
+                self.assertTrue(runtime.adapter.Refresh())
+                self.assertEqual(runtime.adapter.TargetMode, mode_Grade)
+                trainer.SetGrade(runtime.adapter.TargetGrade)
+                self.assertEqual(trainer.TargetMode, mode_Grade)
+                self.assertAlmostEqual(trainer.TargetGrade, 5.0)
         finally:
             await client.stop()
             runtime.stop()
