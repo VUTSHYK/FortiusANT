@@ -39,8 +39,14 @@ jobs:
           python-version: '3.11'
       - name: Install py-wftnp
         run: python -m pip install "git+https://github.com/VUTSHYK/py-wftnp.git@af8e46ddedfe9f4cd1e16680676dadd320a77242"
+      - name: Verify WFTNP dependency and compile modified modules
+        run: |
+          python -c "from wftnp import WftnpClient, WftnpServer; print('py-wftnp imports OK')"
+          python -m compileall -q pythoncode/FortiusAntBody.py pythoncode/FortiusAntCommand.py pythoncode/settings.py pythoncode/wftnpRuntime.py
       - name: Run real TCP integration test
         run: python -m unittest discover -s tests -p 'test_wftnp_tcp_integration.py' -v
+      - name: Run threaded server integration test
+        run: python -m unittest discover -s tests -p 'test_wftnp_runtime_integration.py' -v
 
   build-windows:
     name: Build Windows executables
