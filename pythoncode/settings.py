@@ -78,6 +78,9 @@ json_ble                = 'enable'            # initial implementation with node
 json_nodejs             = 'nodejs'
 json_bless              = 'bless'
 json_wftnpIdleTimeout   = 'wftnp idle timeout'
+json_wftnp              = 'wftnp'
+json_wftnpHost          = 'wftnp host'
+json_wftnpPort          = 'wftnp port'
 
 json_Ant                = 'ant'
 json_antDeviceID        = 'device ID'
@@ -197,6 +200,9 @@ def ReadJsonFile (args):
                         elif q == json_nodejs:              args.ble                  = w[q]
                         elif q == json_bless:               args.bless                = w[q]
                         elif q == json_wftnpIdleTimeout:    args.wftnpIdleTimeout     = w[q]
+                        elif q == json_wftnp:               args.wftnp                = w[q]
+                        elif q == json_wftnpHost:           args.wftnp_host           = w[q]
+                        elif q == json_wftnpPort:           args.wftnp_port           = w[q]
                         else: logfile.Console ('Json file contains unknown parameter %s %s' % (p, q))
 
                 elif p == json_General:
@@ -403,6 +409,9 @@ if constants.UseGui:
             json_nodejs:                DialogWindow.cb_b   .GetValue(),
             json_bless:                 DialogWindow.cb_bb  .GetValue(),
             json_wftnpIdleTimeout:      getattr(clv, 'wftnpIdleTimeout', 3600),
+            json_wftnp:                 DialogWindow.cb_wftnp.GetValue(),
+            json_wftnpHost:             DialogWindow.txt_wftnpHost.GetValue(),
+            json_wftnpPort:             int(DialogWindow.txt_wftnpPort.GetValue()),
         }
 
         data[json_Ant] = {
@@ -631,9 +640,26 @@ if constants.UseGui:
             self.cb_bb = wx.CheckBox(panel, id=wx.ID_ANY, label=l, pos=p, size=s, style=0, validator=wx.DefaultValidator, name=wx.CheckBoxNameStr)
             self.cb_bb.Bind(wx.EVT_CHECKBOX, self.EVT_CHECKBOX_cb_bb)
             
-            l = constants.help_g + " (-g *)"
+            l = "WFTNP FTMS over TCP (--wftnp *)"
             s = (-1, -1)
             p = Under(self.cb_bb)
+            self.cb_wftnp = wx.CheckBox(panel, id=wx.ID_ANY, label=l, pos=p, size=s)
+            self.cb_wftnp.Bind(wx.EVT_CHECKBOX, self.EVT_CHECKBOX_cb_wftnp)
+
+            p = Under(self.cb_wftnp)
+            self.txt_wftnpHost = wx.TextCtrl(panel, value="0.0.0.0", pos=p, size=(120, -1))
+            self.txt_wftnpHost.Bind(wx.EVT_TEXT, self.EVT_TEXT_wftnp)
+            self.lbl_wftnpHost = wx.StaticText(panel, label="WFTNP bind host (restart required)",
+                                                pos=RightOf(self.txt_wftnpHost))
+            p = Under(self.txt_wftnpHost)
+            self.txt_wftnpPort = wx.TextCtrl(panel, value="36866", pos=p, size=(120, -1))
+            self.txt_wftnpPort.Bind(wx.EVT_TEXT, self.EVT_TEXT_wftnp)
+            self.lbl_wftnpPort = wx.StaticText(panel, label="WFTNP TCP port (restart required)",
+                                                pos=RightOf(self.txt_wftnpPort))
+
+            l = constants.help_g + " (-g *)"
+            s = (-1, -1)
+            p = Under(self.txt_wftnpPort)
             self.cb_g = wx.CheckBox(panel, id=wx.ID_ANY, label=l, pos=p, size=s, style=0, validator=wx.DefaultValidator, name=wx.CheckBoxNameStr)
             self.cb_g.Bind(wx.EVT_CHECKBOX, self.EVT_CHECKBOX_cb_g)
             
@@ -990,6 +1016,9 @@ if constants.UseGui:
                 self.cb_A   .SetValue(clv.PedalStrokeAnalysis)
                 self.cb_b   .SetValue(clv.ble)
                 self.cb_bb  .SetValue(clv.bless)
+                self.cb_wftnp.SetValue(getattr(clv, 'wftnp', False))
+                self.txt_wftnpHost.SetValue(str(getattr(clv, 'wftnpHost', '0.0.0.0')))
+                self.txt_wftnpPort.SetValue(str(getattr(clv, 'wftnpPort', 36866)))
                 self.txt_d  .SetValue(str(clv.debug))
                 self.EVT_KILL_FOCUS_txt_d()
                 self.cb_g   .SetValue(clv.gui)
@@ -1039,14 +1068,28 @@ if constants.UseGui:
         # --------------------------------------------------------------------------
         def EVT_CHECKBOX_cb_b (self, event):
             self.cb_restart.SetValue(True)
-            if self.cb_b.GetValue(): self.cb_bb.SetValue(False)
+            if self.cb_b.GetValue():
+                self.cb_bb.SetValue(False)
+                self.cb_wftnp.SetValue(False)
             
         # --------------------------------------------------------------------------
         # Checkbox -bb
         # --------------------------------------------------------------------------
         def EVT_CHECKBOX_cb_bb (self, event):
             self.cb_restart.SetValue(True)
-            if self.cb_bb.GetValue(): self.cb_b.SetValue(False)
+            if self.cb_bb.GetValue():
+                self.cb_b.SetValue(False)
+                self.cb_wftnp.SetValue(False)
+
+        def EVT_CHECKBOX_cb_wftnp(self, event):
+            self.cb_restart.SetValue(True)
+            if self.cb_wftnp.GetValue():
+                self.cb_b.SetValue(False)
+                self.cb_bb.SetValue(False)
+
+        def EVT_TEXT_wftnp(self, event):
+            self.cb_restart.SetValue(True)
+            event.Skip()
             
         # --------------------------------------------------------------------------
         # Checkbox -d
@@ -1221,6 +1264,14 @@ if constants.UseGui:
         # --------------------------------------------------------------------------
         def EVT_BUTTON_btnOK (self, event):
             global RestartApplication, clv
+            try:
+                port = int(self.txt_wftnpPort.GetValue())
+                if not 1 <= port <= 65535 or not self.txt_wftnpHost.GetValue().strip():
+                    raise ValueError()
+            except ValueError:
+                wx.MessageBox('WFTNP host must not be empty and port must be 1-65535',
+                              TitleText, wx.OK | wx.ICON_ERROR)
+                return
             # ----------------------------------------------------------------------
             # Restart FortiusAnt if requested
             # ----------------------------------------------------------------------
@@ -1263,6 +1314,9 @@ if constants.UseGui:
                 clv.PedalStrokeAnalysis = self.cb_A.GetValue()
                 clv.ble                 = self.cb_b.GetValue()
                 clv.bless               = self.cb_bb.GetValue()
+                clv.wftnp               = self.cb_wftnp.GetValue()
+                clv.wftnpHost           = self.txt_wftnpHost.GetValue().strip()
+                clv.wftnpPort           = port
                 clv.gui                 = self.cb_g.GetValue()
 
                 if self.txt_d.GetValue() == '':
