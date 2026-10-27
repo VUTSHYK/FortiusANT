@@ -7,10 +7,19 @@ No trainer methods are called on the network event loop.
 import asyncio
 import socket
 import struct
+
+import debug
+import logfile
 from uuid import UUID
 
 from ftmsBridge import FTMSBridge
 from ftmsControlPoint import FTMSControlPoint
+
+def _diagnostic(message, *, raw=False):
+    """Use FortiusANT's existing debug mask and central logfile."""
+    if debug.on(debug.WFTNP_RAW if raw else debug.WFTNP):
+        logfile.Write("[WFTNP] " + message)
+
 
 FTMS_SERVICE = UUID("00001826-0000-1000-8000-00805f9b34fb")
 INDOOR_BIKE_DATA = UUID("00002ad2-0000-1000-8000-00805f9b34fb")
@@ -63,12 +72,15 @@ class WftnpFTMSTransport:
 
         WFTNP WRITE acknowledgement confirms transport delivery only.
         """
+        _diagnostic("FTMS control write: %s" % bytes(data).hex(" "), raw=True)
+        _diagnostic("FTMS control opcode: 0x%02x" % data[0] if data else "FTMS empty control write")
         result = (self.on_control_write(data) if self.on_control_write is not None
                   else self.control_point.handle_connection(connection, data))
         if asyncio.iscoroutine(result):
             result = await result
         if not isinstance(result, bytes) or len(result) != 3 or result[0] != 0x80:
             raise ValueError("control handler must return an FTMS response")
+        _diagnostic("FTMS response: %s" % result.hex(" "), raw=True)
         if self.server is not None:
             await self.server.notify_connection(connection, CONTROL_POINT, result)
         return None
@@ -95,6 +107,7 @@ class WftnpFTMSTransport:
             on_disconnect_with_connection=self.control_point.release,
         )
         await server.start()
+        _diagnostic("TCP listening on %s:%s" % (self.host, server.port))
         self.server = server
         try:
             if self.mdns_address is not None:
@@ -121,6 +134,7 @@ class WftnpFTMSTransport:
             service_uuids=(FTMS_SERVICE,),
         )
         await advertisement.start()
+        _diagnostic("mDNS registered: %s at %s:%s" % (name, self.mdns_address, self.server.port))
         self._advertisement = advertisement
 
     async def _publish_loop(self):
@@ -144,4 +158,5 @@ class WftnpFTMSTransport:
         server, self.server = self.server, None
         if server is not None:
             await server.stop()
+            _diagnostic("TCP stopped")
         self.control_point.release()
