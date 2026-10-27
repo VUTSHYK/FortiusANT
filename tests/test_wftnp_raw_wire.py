@@ -31,6 +31,15 @@ async def receive(reader):
     return header, payload
 
 
+async def receive_control_exchange(reader, sequence, expected_result):
+    """WRITE ack and NOTIFY can arrive in either order."""
+    ack = bytes((1, 4, sequence, 0, 0, 16))
+    notice = bytes.fromhex("0106000000") + bytes((16 + len(expected_result),))
+    frames = [await receive(reader), await receive(reader)]
+    self_frames = {(h, p) for h, p in frames}
+    assert self_frames == {(ack, CONTROL), (notice, CONTROL + expected_result)}, frames
+
+
 @unittest.skipUnless(WftnpServer is not None, "py-wftnp not installed")
 class TestWftnpRawWire(unittest.IsolatedAsyncioTestCase):
     async def test_reference_frames_and_ftms_control(self):
@@ -62,22 +71,12 @@ class TestWftnpRawWire(unittest.IsolatedAsyncioTestCase):
 
             writer.write(frame(4, 10, CONTROL + b"\x00"))
             await writer.drain()
-            h, p = await receive(reader)
-            self.assertEqual(h, bytes.fromhex("01040a000010"))
-            self.assertEqual(p, CONTROL)
-            h, p = await receive(reader)
-            self.assertEqual(h[:2], b"\x01\\x06")
-            self.assertEqual(p, CONTROL + b"\x80\\x00\\x01")
+            await receive_control_exchange(reader, 10, bytes.fromhex("800001"))
 
             # 250 W is FA 00 (little-endian) inside FTMS, not 00 FA.
             writer.write(frame(4, 11, CONTROL + bytes.fromhex("05fa00")))
             await writer.drain()
-            h, p = await receive(reader)
-            self.assertEqual(h, bytes.fromhex("01040b000010"))
-            self.assertEqual(p, CONTROL)
-            h, p = await receive(reader)
-            self.assertEqual(h[:2], b"\x01\\x06")
-            self.assertEqual(p, CONTROL + bytes.fromhex("800501"))
+            await receive_control_exchange(reader, 11, bytes.fromhex("800501"))
             command = transport.bridge.take_command()
             self.assertEqual(command.target_power_watts, 250)
         finally:
