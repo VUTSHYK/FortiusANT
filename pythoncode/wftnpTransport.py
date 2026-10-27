@@ -5,6 +5,7 @@ No trainer methods are called on the network event loop.
 """
 
 import asyncio
+import socket
 import struct
 from uuid import UUID
 
@@ -38,7 +39,7 @@ class WftnpFTMSTransport:
 
     def __init__(self, bridge=None, *, host="127.0.0.1", port=36866,
                  on_control_write=None, interval=0.25, idle_timeout=3600,
-                 max_connections=4):
+                 max_connections=4, mdns_address=None, mdns_name='Tacx Vortex'):
         if idle_timeout <= 0:
             raise ValueError('idle_timeout must be positive')
         if interval <= 0:
@@ -51,6 +52,9 @@ class WftnpFTMSTransport:
         self.interval = interval
         self.idle_timeout = idle_timeout
         self.max_connections = max_connections
+        self.mdns_address = mdns_address
+        self.mdns_name = mdns_name
+        self._advertisement = None
         self.server = None
         self._publisher = None
 
@@ -92,7 +96,32 @@ class WftnpFTMSTransport:
         )
         await server.start()
         self.server = server
+        try:
+            if self.mdns_address is not None:
+                await self.update_mdns_name(self.mdns_name)
+        except BaseException:
+            self.server = None
+            await server.stop()
+            raise
         self._publisher = asyncio.create_task(self._publish_loop())
+
+    async def update_mdns_name(self, name):
+        """Refresh only mDNS; keep the live TCP session and subscribers."""
+        if name == self.mdns_name and self._advertisement is not None:
+            return
+        self.mdns_name = name
+        old, self._advertisement = self._advertisement, None
+        if old is not None:
+            await old.stop()
+        if self.server is None or self.mdns_address is None:
+            return
+        from wftnp.advertisement import ServerAdvertisement
+        advertisement = ServerAdvertisement(
+            name=name, address=self.mdns_address, port=self.server.port,
+            service_uuids=(FTMS_SERVICE,),
+        )
+        await advertisement.start()
+        self._advertisement = advertisement
 
     async def _publish_loop(self):
         try:
@@ -105,6 +134,9 @@ class WftnpFTMSTransport:
             raise
 
     async def stop(self):
+        advertisement, self._advertisement = self._advertisement, None
+        if advertisement is not None:
+            await advertisement.stop()
         publisher, self._publisher = self._publisher, None
         if publisher is not None:
             publisher.cancel()
