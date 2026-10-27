@@ -30,13 +30,23 @@ Alternatively select WFTNP in the graphical settings dialog and save the setting
 
 **Validation status:** GitHub Actions run [#55](https://github.com/VUTSHYK/FortiusANT/actions/runs/40461420498) passed the Python test matrix and actual loopback TCP client/server tests. **Full FortiusANT GUI startup, Raspberry Pi 3 + Tacx Vortex hardware control, and discovery/operation in Zwift have not yet been verified.** A successful `py-wftnp` client test does not establish Zwift compatibility.
 
-### Legacy files and cleanup
+### Legacy cleanup performed in this branch
 
-Do **not** remove `pythoncode/bleBless.py` while retaining the Bless Bluetooth option: it is still a supported alternative. Do **not** remove the existing ANT+/USB trainer drivers, `pythoncode/settings.py`, `FortiusAntSettings.json`, or `pythoncode/FortiusAntBody.py`: they remain part of the application.
+The obsolete `node/` JavaScript/Bleno tree (19 tracked files), its Raspberry
+Pi installation scripts `raspberry/3_InstallNodeJs.sh` and
+`raspberry/6_SetupNodeJs_FortiusAnt.sh`, and the superseded
+`pythoncode/wftnp_bridge.py` were removed in commit
+[`2d087dc`](https://github.com/VUTSHYK/FortiusANT/commit/2d087dc1a338c71b626267969bf19866623405c5).
+The legacy Node.js installation instructions in `doc/bluetooth.md` were
+replaced with Bless and WFTNP guidance.
 
-The old Node.js/Bleno and experimental DirCon runtime implementations are no longer used in this fork, but historical files or documentation may remain. A directory named `node/`, if present in a local checkout, is a **cleanup candidate only after confirming that no packaging, scripts, or documentation depend on it**. It is not necessary for WFTNP itself. Do not delete an entire directory on the basis of its name alone.
+**Kept intentionally:** `pythoncode/bleBless.py`,
+`pythoncode/bleBlessClass.py`, BLE testing tools, ANT+/USB trainer drivers,
+settings, GUI, Raspberry Pi hardware utilities, Windows/macOS build resources,
+and historical project documentation. Removing any of these would require
+separate feature-removal decisions or more validation. This cleanup does not
+disable the Bless alternative.
 
-The repository comparison against this fork's `master` already shows `.github/workflows/build.yml` removed; **do not delete additional build files blindly**. A full removal list requires a tracked-file and reference audit. No additional files or directories are removed by this README change.
 
 ---
 
