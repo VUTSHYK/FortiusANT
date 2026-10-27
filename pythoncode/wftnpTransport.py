@@ -105,6 +105,7 @@ class WftnpFTMSTransport:
             max_connections=self.max_connections,
             idle_timeout=self.idle_timeout,
             on_disconnect_with_connection=self.control_point.release,
+            on_diagnostic=lambda message, raw: _diagnostic(message, raw=raw),
         )
         await server.start()
         _diagnostic("TCP listening on %s:%s" % (self.host, server.port))
