@@ -32,12 +32,11 @@ async def receive(reader):
 
 
 async def receive_control_exchange(reader, sequence, expected_result):
-    """WRITE ack and NOTIFY can arrive in either order."""
+    """The WFTNP WRITE acknowledgement must precede FTMS NOTIFY."""
     ack = bytes((1, 4, sequence, 0, 0, 16))
     notice = bytes.fromhex("0106000000") + bytes((16 + len(expected_result),))
     frames = [await receive(reader), await receive(reader)]
-    self_frames = {(h, p) for h, p in frames}
-    assert self_frames == {(ack, CONTROL), (notice, CONTROL + expected_result)}, frames
+    assert frames == [(ack, CONTROL), (notice, CONTROL + expected_result)], frames
 
 
 @unittest.skipUnless(WftnpServer is not None, "py-wftnp not installed")
