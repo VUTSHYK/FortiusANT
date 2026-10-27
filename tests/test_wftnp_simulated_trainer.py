@@ -39,14 +39,14 @@ class TestSimulatedTrainerWftnp(unittest.IsolatedAsyncioTestCase):
             await client.wait_ready(timeout=3)
             async with (await client.subscribe(CONTROL_POINT) as control,
                         await client.subscribe(INDOOR_BIKE_DATA) as telemetry):
-                await client.write_characteristic(CONTROL_POINT, b"\\x00")
+                await client.write_characteristic(CONTROL_POINT, b"\x00")
                 self.assertEqual((await asyncio.wait_for(anext(control), 3)).value,
-                                 b"\\x80\\x00\\x01")
+                                 b"\x80\x00\x01")
                 for watts in (150, 250):
                     await client.write_characteristic(
                         CONTROL_POINT, bytes((0x05, watts & 0xff, watts >> 8)))
                     self.assertEqual((await asyncio.wait_for(anext(control), 3)).value,
-                                     b"\\x80\\x05\\x01")
+                                     b"\x80\x05\x01")
                     adapter = runtime.adapter
                     self.assertTrue(adapter.Refresh())
                     self.assertEqual(adapter.TargetMode, mode_Power)
@@ -59,10 +59,10 @@ class TestSimulatedTrainerWftnp(unittest.IsolatedAsyncioTestCase):
                 # Simulation parameters are FTMS 0.01% signed grade.
                 grade = 500
                 await client.write_characteristic(
-                    CONTROL_POINT, b"\\x11" + grade.to_bytes(2, "little", signed=True)
-                    + b"\\x00\\x00\\x00\\x00")
+                    CONTROL_POINT, b"\x11" + grade.to_bytes(2, "little", signed=True)
+                    + b"\x00\x00\x00\x00")
                 response = (await asyncio.wait_for(anext(control), 3)).value
-                self.assertEqual(response[:2], b"\\x80\\x11")
+                self.assertEqual(response[:2], b"\x80\x11")
                 if response[2] == 1:
                     self.assertTrue(runtime.adapter.Refresh())
                     self.assertEqual(runtime.adapter.TargetMode, mode_Grade)
