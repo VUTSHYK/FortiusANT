@@ -507,6 +507,8 @@ class CommandLineVariables(object):
                 if 'j' in self.args.debug: self.debug |= debug.LogfileJson
                 if 'b' in self.args.debug: self.debug |= debug.Ble
                 if 'p' in self.args.debug: self.debug |= debug.Performance
+                if 'w' in self.args.debug: self.debug |= debug.WFTNP
+                if 'q' in self.args.debug: self.debug |= debug.WFTNP_RAW
 
                 if 'D' in self.args.debug: self.debug |= debug.logging_DEBUG
                 if 'I' in self.args.debug: self.debug |= debug.logging_INFO
