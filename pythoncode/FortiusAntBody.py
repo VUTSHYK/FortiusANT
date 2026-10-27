@@ -257,6 +257,7 @@ import TCXexport
 import usbTrainer
 
 import bleBless
+from wftnpRuntime import WftnpRuntime
 
 PrintWarnings = False   # Print warnings even when logging = off
 CycleTimeFast = 0.02    # TRAINER- SHOULD WRITE THEN READ 70MS LATER REALLY
@@ -265,7 +266,8 @@ CycleTimeANT  = 0.25
 # Initialize globals
 # ------------------------------------------------------------------------------
 def Initialize(pclv):
-    global clv, AntDongle, TacxTrainer, tcx, bleCTP, rpi
+    global clv, AntDongle, TacxTrainer, tcx, bleCTP, rpi, wftnpRuntime
+    wftnpRuntime = None
     clv         = pclv
     AntDongle   = None
     TacxTrainer = None
@@ -291,7 +293,10 @@ def Initialize(pclv):
 #      https://github.com/pyusb/pyusb/blob/ffe6faf42c6ad273880b0b464b9bbf44c1d4b2e9/usb/util.py#L206
 # ------------------------------------------------------------------------------
 def Terminate():
-    global clv, AntDongle, TacxTrainer, tcx, bleCTP
+    global clv, AntDongle, TacxTrainer, tcx, bleCTP, wftnpRuntime
+    if wftnpRuntime is not None:
+        wftnpRuntime.stop()
+        wftnpRuntime = None
     f = logfile.Write
     #f = logfile.Console            # For quick testing
     if debug.on(debug.Function): f ("FortiusAntBody.Terminate() ...")
@@ -682,7 +687,7 @@ def Tacx2Dongle(FortiusAntGui):
     return rtn
 
 def Tacx2DongleSub(FortiusAntGui, Restart):
-    global clv, AntDongle, TacxTrainer, tcx, bleCTP, manualMsg
+    global clv, AntDongle, TacxTrainer, tcx, bleCTP, manualMsg, wftnpRuntime
 
     assert(AntDongle)                       # The class must be created
     assert(TacxTrainer)                     # The class must be created
@@ -1010,6 +1015,12 @@ def Tacx2DongleSub(FortiusAntGui, Restart):
             if not bleCTP.OK:
                 logfile.Console('* * Bluetooth interface disabled * * ')
                 clv.ble = False
+
+        if getattr(clv, 'wftnp', False):
+            wftnpRuntime = WftnpRuntime(host=clv.wftnpHost, port=clv.wftnpPort,
+                                        idle_timeout=clv.wftnpIdleTimeout)
+            wftnpRuntime.start()
+            logfile.Console('WFTNP FTMS listening on %s:%s' % (clv.wftnpHost, clv.wftnpPort))
 
         if clv.manualGrade:
             TacxTrainer.SetGrade(0)
@@ -1397,6 +1408,28 @@ def Tacx2DongleSub(FortiusAntGui, Restart):
                 # When data is received, TacxTrainer parameters are copied from
                 # the bleCTP object.
                 #---------------------------------------------------------------
+                if wftnpRuntime is not None:
+                    wftnpCTP = wftnpRuntime.adapter
+                    wftnpCTP.SetAthleteData(HeartRate)
+                    wftnpCTP.SetTrainerData(TacxTrainer.SpeedKmh,
+                                            TacxTrainer.Cadence, TacxTrainer.CurrentPower)
+                    if wftnpCTP.Refresh():
+                        CTPcommandTime = time.time()
+                        if wftnpCTP.TargetMode == mode_Power:
+                            TargetPowerTime = time.time()
+                            TacxTrainer.SetPower(wftnpCTP.TargetPower)
+                        elif wftnpCTP.TargetMode == mode_Grade:
+                            if not (clv.PowerMode and (time.time() - TargetPowerTime) < 30):
+                                Grade = (wftnpCTP.TargetGrade + clv.GradeShift) * clv.GradeFactor
+                                if Grade < 0:
+                                    Grade *= clv.GradeFactorDH
+                                TacxTrainer.SetGrade(Grade)
+                        if wftnpCTP.WindResistance and wftnpCTP.WindSpeed and wftnpCTP.DraftingFactor:
+                            TacxTrainer.SetWind(wftnpCTP.WindResistance, wftnpCTP.WindSpeed,
+                                                wftnpCTP.DraftingFactor)
+                        if wftnpCTP.RollingResistance:
+                            TacxTrainer.SetRollingResistance(wftnpCTP.RollingResistance)
+
                 if clv.ble:
                     bleCTP.SetAthleteData(HeartRate)
                     bleCTP.SetTrainerData(TacxTrainer.SpeedKmh, \
@@ -1873,6 +1906,9 @@ def Tacx2DongleSub(FortiusAntGui, Restart):
     #---------------------------------------------------------------------------
     if not AntDongle.DongleReconnected:
         if clv.exportTCX: tcx.Stop()
+        if wftnpRuntime is not None:
+            wftnpRuntime.stop()
+            wftnpRuntime = None
         if clv.ble:       bleCTP.Close()
         FortiusAntGui.SetMessages(Dongle=AntDongle.Message + bleCTP.Message + manualMsg)
         TacxTrainer.SendToTrainer(True, usbTrainer.modeStop)
