@@ -50,12 +50,14 @@ class TestWftnpRuntime(unittest.TestCase):
                             (await asyncio.wait_for(anext(control), 3)).value,
                             b"\x80\x05\x01",
                         )
+                        # Consume while the owner is connected: disconnect
+                        # intentionally discards any unconsumed commands.
+                        self.assertTrue(runtime.adapter.Refresh())
+                        self.assertEqual(runtime.adapter.TargetPower, 200)
                 finally:
                     await client.stop()
 
             asyncio.run(exercise())
-            self.assertTrue(runtime.adapter.Refresh())
-            self.assertEqual(runtime.adapter.TargetPower, 200)
         finally:
             runtime.stop()
         self.assertIsNone(runtime._thread)
