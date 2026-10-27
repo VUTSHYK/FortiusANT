@@ -3,6 +3,9 @@ import asyncio
 import sys
 import unittest
 from pathlib import Path
+from unittest.mock import patch
+
+import debug
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "pythoncode"))
 
@@ -16,6 +19,36 @@ from wftnpTransport import CONTROL_POINT, INDOOR_BIKE_DATA, WftnpFTMSTransport
 
 @unittest.skipUnless(WftnpClient is not None, "py-wftnp not installed")
 class TestWftnpTcpIntegration(unittest.IsolatedAsyncioTestCase):
+    async def test_protocol_diagnostics_over_real_tcp(self):
+        """Verify connect, discovery, subscription and raw frames through the real server."""
+        debug.activate(debug.WFTNP | debug.WFTNP_RAW | debug.Application)
+        transport = WftnpFTMSTransport(port=0, interval=0.02)
+        client = None
+        try:
+            with patch("wftnpTransport.logfile.Write") as write:
+                await transport.start()
+                client = WftnpClient(Endpoint("127.0.0.1", transport.server.port),
+                                     heartbeat_interval=None)
+                await client.start()
+                await client.wait_ready(timeout=3)
+                async with await client.subscribe(INDOOR_BIKE_DATA):
+                    await asyncio.sleep(0.05)
+                await client.stop()
+                await asyncio.sleep(0.05)
+                messages = [call.args[0] for call in write.call_args_list]
+            self.assertTrue(any("TCP connected:" in m for m in messages), messages)
+            self.assertTrue(any("TCP disconnected:" in m for m in messages), messages)
+            self.assertTrue(any("request opcode=" in m for m in messages), messages)
+            self.assertTrue(any("discover characteristics:" in m for m in messages), messages)
+            self.assertTrue(any("subscribe " in m for m in messages), messages)
+            self.assertTrue(any("[WFTNP] RX " in m for m in messages), messages)
+            self.assertTrue(any("[WFTNP] TX " in m for m in messages), messages)
+        finally:
+            if client is not None:
+                await client.stop()
+            await transport.stop()
+            debug.deactivate()
+
     async def test_ownership_and_telemetry(self):
         transport = WftnpFTMSTransport(port=0, interval=0.02)
         await transport.start()
