@@ -5,6 +5,7 @@ notification. Commands reach the trainer only through FTMSBridge.
 """
 
 import struct
+from threading import RLock
 
 from ftmsBridge import TrainerCommand, TrainerMode
 
@@ -24,17 +25,27 @@ class FTMSControlPoint:
     def __init__(self, bridge):
         self.bridge = bridge
         self.has_control = False
+        self.controller_connection = None
+        self._lock = RLock()
 
-    def release(self):
-        self.has_control = False
+    def release(self, connection=None):
+        with self._lock:
+            if connection is None or connection is self.controller_connection:
+                self.has_control = False
+                self.controller_connection = None
+                self.bridge.discard_commands()
+
+    def handle_connection(self, connection, request):
+        with self._lock:
+            opcode = request[0] if request else 0
+            result = self._apply(request, connection)
+            return bytes((0x80, opcode, result))
 
     def handle(self, request):
         """Return FTMS response bytes; queue only accepted trainer commands."""
-        opcode = request[0] if request else 0
-        result = self._apply(request)
-        return bytes((0x80, opcode, result))
+        return self.handle_connection(None, request)
 
-    def _apply(self, request):
+    def _apply(self, request, connection):
         if not request:
             return self.INVALID_PARAMETER
         opcode = request[0]
@@ -49,9 +60,12 @@ class FTMSControlPoint:
         if len(request) != sizes[opcode]:
             return self.INVALID_PARAMETER
         if opcode == self.REQUEST_CONTROL:
+            if self.has_control and connection is not self.controller_connection:
+                return self.CONTROL_NOT_PERMITTED
             self.has_control = True
+            self.controller_connection = connection
             return self.SUCCESS
-        if not self.has_control:
+        if not self.has_control or connection is not self.controller_connection:
             return self.CONTROL_NOT_PERMITTED
         if opcode == self.RESET:
             self.release()
