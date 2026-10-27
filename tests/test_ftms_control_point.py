@@ -57,6 +57,33 @@ class TestFTMSControlPoint(unittest.TestCase):
         self.assertIsNone(self.bridge.take_command())
         self.assertEqual(self.control.handle_connection(second, b"\x00"), b"\x80\x00\x01")
 
+    def test_pending_commands_are_discarded_on_disconnect(self):
+        owner, successor = object(), object()
+        self.control.handle_connection(owner, bytes((0,)))
+        self.assertEqual(self.control.handle_connection(owner, bytes((5, 100, 0))), bytes((128, 5, 1)))
+        self.control.release(owner)
+        self.assertIsNone(self.bridge.take_command())
+        self.control.handle_connection(successor, bytes((0,)))
+        self.assertEqual(self.control.handle_connection(successor, bytes((5, 200, 0))), bytes((128, 5, 1)))
+        self.assertEqual(self.bridge.take_command().target_power_watts, 200)
+
+    def test_competing_requests_have_one_owner(self):
+        from concurrent.futures import ThreadPoolExecutor
+        from threading import Barrier
+
+        connections = [object(), object()]
+        barrier = Barrier(2)
+
+        def request(connection):
+            barrier.wait()
+            return self.control.handle_connection(connection, bytes((0,)))
+
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            futures = [pool.submit(request, connection) for connection in connections]
+            results = [future.result(timeout=3) for future in futures]
+        self.assertCountEqual(results, [bytes((128, 0, 1)), bytes((128, 0, 5))])
+        self.assertIn(self.control.controller_connection, connections)
+
     def test_invalid_requests(self):
         self.assertEqual(self.control.handle(b""), b"\x80\x00\x03")
         self.assertEqual(self.control.handle(b"\xff"), b"\x80\xff\x02")
