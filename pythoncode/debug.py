@@ -30,6 +30,8 @@ MultiProcessing = 0x0010    #   16
 LogfileJson     = 0x0020    #   32
 Ble             = 0x0040    #   64
 Performance     = 0x0080    #  128
+WFTNP           = 0x2000    # 8192: lifecycle, clients and FTMS commands
+WFTNP_RAW       = 0x4000    # 16384: verbose protocol payload diagnostics
 
 logging_DEBUG   = 0x0100    #  256      That's all
 logging_INFO    = 0x0200    #  512
