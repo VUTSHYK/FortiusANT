@@ -6,11 +6,15 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "pythoncode"))
 
-from wftnp import Endpoint, WftnpClient
+try:
+    from wftnp import Endpoint, WftnpClient
+except ImportError:
+    Endpoint = WftnpClient = None
 from ftmsBridge import TrainerMode
 from wftnpTransport import CONTROL_POINT, INDOOR_BIKE_DATA, WftnpFTMSTransport
 
 
+@unittest.skipUnless(WftnpClient is not None, "py-wftnp not installed")
 class TestWftnpTcpIntegration(unittest.IsolatedAsyncioTestCase):
     async def test_ownership_and_telemetry(self):
         transport = WftnpFTMSTransport(port=0, interval=0.02)
