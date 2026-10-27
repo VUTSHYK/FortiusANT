@@ -81,3 +81,7 @@ Copyright (c) 2020...2023 [Wouter Dubbeldam](https://github.com/WouterJD). Pleas
 [![Custom badge](https://github.com/WouterJD/FortiusANT/blob/master/pythoncode/sponsor36.bmp)](https://github.com/sponsors/WouterJD)
 
 If you like to use FortiusAnt; please leave a note on the [put yourself on the FortiusAnt map](https://github.com/WouterJD/FortiusANT/issues/14) page; thereby a sponsorship would be another great way to support the project.
+
+### Before merging WFTNP into master
+
+- [ ] Revisit the `py-wftnp` dependency in both `pythoncode/requirements.txt` and `pythoncode/requirementsNoGUI.txt`. It is currently pinned to commit `af8e46ddedfe9f4cd1e16680676dadd320a77242` (which matched `VUTSHYK/py-wftnp` `master` on 2026-10-27). Decide whether to switch to a stable release/tag or the current `master`, update both files consistently, and rerun WFTNP integration and Python compatibility tests before merging FortiusANT.
