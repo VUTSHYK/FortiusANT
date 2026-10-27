@@ -37,7 +37,8 @@ class WftnpFTMSTransport:
     """
 
     def __init__(self, bridge=None, *, host="127.0.0.1", port=36866,
-                 on_control_write=None, interval=0.25, idle_timeout=3600,\n                 max_connections=4):
+                 on_control_write=None, interval=0.25, idle_timeout=3600,
+                 max_connections=4):
         if idle_timeout <= 0:
             raise ValueError('idle_timeout must be positive')
         if interval <= 0:
