@@ -40,15 +40,15 @@ class TestWftnpRuntime(unittest.TestCase):
                     ):
                         sample = await asyncio.wait_for(anext(bike), 3)
                         self.assertTrue(sample.value)
-                        await client.write_characteristic(CONTROL_POINT, b"\\x00")
+                        await client.write_characteristic(CONTROL_POINT, b"\x00")
                         self.assertEqual(
                             (await asyncio.wait_for(anext(control), 3)).value,
-                            b"\\x80\\x00\\x01",
+                            b"\x80\x00\x01",
                         )
-                        await client.write_characteristic(CONTROL_POINT, b"\\x05\\xc8\\x00")
+                        await client.write_characteristic(CONTROL_POINT, b"\x05\xc8\x00")
                         self.assertEqual(
                             (await asyncio.wait_for(anext(control), 3)).value,
-                            b"\\x80\\x05\\x01",
+                            b"\x80\x05\x01",
                         )
                 finally:
                     await client.stop()
