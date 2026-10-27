@@ -59,8 +59,8 @@ class TestSimulatedTrainerWftnp(unittest.IsolatedAsyncioTestCase):
                 # Simulation parameters are FTMS 0.01% signed grade.
                 grade = 500
                 await client.write_characteristic(
-                    CONTROL_POINT, b"\x11" + grade.to_bytes(2, "little", signed=True)
-                    + b"\x00\x00\x00\x00")
+                    CONTROL_POINT, b"\x11\x00\x00" + grade.to_bytes(2, "little", signed=True)
+                    + b"\x00\x00")
                 response = (await asyncio.wait_for(anext(control), 3)).value
                 self.assertEqual(response[:2], b"\x80\x11")
                 if response[2] == 1:
