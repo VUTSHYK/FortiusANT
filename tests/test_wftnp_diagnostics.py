@@ -60,6 +60,46 @@ class DiagnosticsTests(unittest.TestCase):
             _diagnostic("raw", raw=True)
         write.assert_not_called()
 
+    def test_combined_debug_bits_keep_wftnp_and_other_categories(self):
+        """WFTNP must work alongside unrelated FortiusANT debug flags."""
+        mask = debug.WFTNP | debug.WFTNP_RAW | debug.Application | debug.Ble | debug.Performance
+        self.assertEqual(mask, 24769)
+        debug.activate(mask)
+        for flag in (debug.WFTNP, debug.WFTNP_RAW, debug.Application, debug.Ble, debug.Performance):
+            self.assertTrue(debug.on(flag))
+        self.assertFalse(debug.on(debug.Data1))
+        with patch("wftnpTransport.logfile.Write") as write:
+            _diagnostic("connected")
+            _diagnostic("01 02", raw=True)
+        self.assertEqual([c.args[0] for c in write.call_args_list],
+                         ["[WFTNP] connected", "[WFTNP] 01 02"])
+
+    def test_all_debug_bits_enable_both_wftnp_modes(self):
+        debug.activate(debug.All)
+        self.assertEqual(debug.All, 65535)
+        with patch("wftnpTransport.logfile.Write") as write:
+            _diagnostic("all enabled")
+            _diagnostic("ff", raw=True)
+        self.assertEqual([c.args[0] for c in write.call_args_list],
+                         ["[WFTNP] all enabled", "[WFTNP] ff"])
+
+    def test_wftnp_logfile_with_combined_mask(self):
+        """Combined debug bits must still write a real WFTNP log record."""
+        from datetime import datetime
+        with tempfile.TemporaryDirectory() as directory:
+            with patch("logfile.datetime") as clock:
+                clock.now.return_value = datetime(2026, 1, 2, 3, 4, 5)
+                with patch("logfile.UsePythonLogging", False), patch("logfile.LogfileCreated", False):
+                    debug.activate(debug.WFTNP | debug.Application | debug.Ble)
+                    prefix = str(Path(directory) / "combined")
+                    logfile.Open(prefix=prefix)
+                    try:
+                        _diagnostic("combined categories")
+                    finally:
+                        logfile.fLogfile.close()
+                    contents = Path(prefix + ".2026-01-02 03-04-05.log").read_text()
+                    self.assertIn("[WFTNP] combined categories", contents)
+
     def test_disabled_diagnostics_are_silent(self):
         debug.deactivate()
         with patch("wftnpTransport.logfile.Write") as write:
