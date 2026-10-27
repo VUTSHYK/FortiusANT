@@ -43,6 +43,20 @@ class TestFTMSControlPoint(unittest.TestCase):
         self.assertEqual(self.control.handle(b"\x01"), b"\x80\x01\x01")
         self.assertEqual(self.control.handle(b"\x05\x64\x00"), b"\x80\x05\x05")
 
+    def test_two_connections_and_owner_disconnect(self):
+        first, second = object(), object()
+        self.assertEqual(self.control.handle_connection(first, b"\x00"), b"\x80\x00\x01")
+        self.assertEqual(self.control.handle_connection(first, b"\x00"), b"\x80\x00\x01")
+        self.assertEqual(self.control.handle_connection(second, b"\x00"), b"\x80\x00\x05")
+        self.assertEqual(self.control.handle_connection(second, b"\x05\x64\x00"), b"\x80\x05\x05")
+        self.assertIsNone(self.bridge.take_command())
+        self.assertEqual(self.control.handle_connection(first, b"\x05\x64\x00"), b"\x80\x05\x01")
+        self.control.release(second)
+        self.assertEqual(self.control.handle_connection(second, b"\x00"), b"\x80\x00\x05")
+        self.control.release(first)
+        self.assertIsNone(self.bridge.take_command())
+        self.assertEqual(self.control.handle_connection(second, b"\x00"), b"\x80\x00\x01")
+
     def test_invalid_requests(self):
         self.assertEqual(self.control.handle(b""), b"\x80\x00\x03")
         self.assertEqual(self.control.handle(b"\xff"), b"\x80\xff\x02")
