@@ -81,7 +81,7 @@ jobs:
 
   build-windows:
     name: Build Windows executables
-    if: github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/feature/wftnp-diagnostics'
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -93,7 +93,7 @@ jobs:
         run: ci/windows/build.bat
       - uses: actions/upload-artifact@v4
         with:
-          name: Windows artifacts
+          name: Windows-WFTNP-diagnostics
           path: |
             pythoncode\dist\FortiusANT.exe
             pythoncode\dist\ExplorANT.exe
