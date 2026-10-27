@@ -406,7 +406,6 @@ if constants.UseGui:
 
         data[json_Bluetooth] = {
             #json_ble is not written anymore since #366
-            json_nodejs:                False,  # obsolete Node/Bleno mode; never re-enable
             json_bless:                 DialogWindow.cb_bb  .GetValue(),
             json_wftnpIdleTimeout:      getattr(clv, 'wftnpIdleTimeout', 3600),
             json_wftnp:                 DialogWindow.cb_wftnp.GetValue(),
