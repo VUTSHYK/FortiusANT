@@ -196,8 +196,8 @@ def ReadJsonFile (args):
 
                 elif p == json_Bluetooth:
                     for q in data[json_Bluetooth]:
-                        if   q == json_ble:                 args.ble                  = w[q]    # For compatibility
-                        elif q == json_nodejs:              args.ble                  = w[q]
+                        if   q == json_ble:                 args.bless                = args.bless or bool(w[q])  # migrate old BLE setting
+                        elif q == json_nodejs:              args.bless                = args.bless or bool(w[q])  # migrate old Node setting
                         elif q == json_bless:               args.bless                = w[q]
                         elif q == json_wftnpIdleTimeout:    args.wftnpIdleTimeout     = w[q]
                         elif q == json_wftnp:               args.wftnp                = w[q]
@@ -406,7 +406,7 @@ if constants.UseGui:
 
         data[json_Bluetooth] = {
             #json_ble is not written anymore since #366
-            json_nodejs:                DialogWindow.cb_b   .GetValue(),
+            json_nodejs:                False,  # obsolete Node/Bleno mode; never re-enable
             json_bless:                 DialogWindow.cb_bb  .GetValue(),
             json_wftnpIdleTimeout:      getattr(clv, 'wftnpIdleTimeout', 3600),
             json_wftnp:                 DialogWindow.cb_wftnp.GetValue(),
@@ -628,15 +628,9 @@ if constants.UseGui:
             self.cb_a = wx.CheckBox(panel, id=wx.ID_ANY, label=l, pos=p, size=s, style=0, validator=wx.DefaultValidator, name=wx.CheckBoxNameStr)
             self.cb_a.Bind(wx.EVT_CHECKBOX, self.EVT_CHECKBOX_cb_a)
             
-            l = constants.help_b + " (-b *)"
+            l = "Bluetooth FTMS (Python Bless) (-bb *)"
             s = (-1, -1)
             p = Under(self.cb_a)
-            self.cb_b = wx.CheckBox(panel, id=wx.ID_ANY, label=l, pos=p, size=s, style=0, validator=wx.DefaultValidator, name=wx.CheckBoxNameStr)
-            self.cb_b.Bind(wx.EVT_CHECKBOX, self.EVT_CHECKBOX_cb_b)
-            
-            l = constants.help_bb + " (-bb *)"
-            s = (-1, -1)
-            p = Under(self.cb_b)
             self.cb_bb = wx.CheckBox(panel, id=wx.ID_ANY, label=l, pos=p, size=s, style=0, validator=wx.DefaultValidator, name=wx.CheckBoxNameStr)
             self.cb_bb.Bind(wx.EVT_CHECKBOX, self.EVT_CHECKBOX_cb_bb)
             
@@ -1014,8 +1008,7 @@ if constants.UseGui:
             if clv:
                 self.cb_a   .SetValue(clv.autostart)
                 self.cb_A   .SetValue(clv.PedalStrokeAnalysis)
-                self.cb_b   .SetValue(clv.ble)
-                self.cb_bb  .SetValue(clv.bless)
+                self.cb_bb  .SetValue(clv.ble or clv.bless)
                 self.cb_wftnp.SetValue(getattr(clv, 'wftnp', False))
                 self.txt_wftnpHost.SetValue(str(getattr(clv, 'wftnpHost', '0.0.0.0')))
                 self.txt_wftnpPort.SetValue(str(getattr(clv, 'wftnpPort', 36866)))
@@ -1066,25 +1059,14 @@ if constants.UseGui:
         # --------------------------------------------------------------------------
         # Checkbox -b
         # --------------------------------------------------------------------------
-        def EVT_CHECKBOX_cb_b (self, event):
-            self.cb_restart.SetValue(True)
-            if self.cb_b.GetValue():
-                self.cb_bb.SetValue(False)
-                self.cb_wftnp.SetValue(False)
-            
-        # --------------------------------------------------------------------------
-        # Checkbox -bb
-        # --------------------------------------------------------------------------
         def EVT_CHECKBOX_cb_bb (self, event):
             self.cb_restart.SetValue(True)
             if self.cb_bb.GetValue():
-                self.cb_b.SetValue(False)
                 self.cb_wftnp.SetValue(False)
 
         def EVT_CHECKBOX_cb_wftnp(self, event):
             self.cb_restart.SetValue(True)
             if self.cb_wftnp.GetValue():
-                self.cb_b.SetValue(False)
                 self.cb_bb.SetValue(False)
 
         def EVT_TEXT_wftnp(self, event):
@@ -1312,7 +1294,7 @@ if constants.UseGui:
             if RestartApplication:
                 clv.autostart           = self.cb_a.GetValue()
                 clv.PedalStrokeAnalysis = self.cb_A.GetValue()
-                clv.ble                 = self.cb_b.GetValue()
+                clv.ble                 = False  # Node/Bleno removed
                 clv.bless               = self.cb_bb.GetValue()
                 clv.wftnp               = self.cb_wftnp.GetValue()
                 clv.wftnpHost           = self.txt_wftnpHost.GetValue().strip()
