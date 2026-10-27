@@ -16,10 +16,14 @@ from constants import mode_Grade, mode_Power
 from ftmsWftnpAdapter import FTMSWftnpAdapter
 from wftnpRuntime import WftnpRuntime
 from wftnpTransport import CONTROL_POINT, INDOOR_BIKE_DATA
-from usbTrainer import clsSimulatedTrainer
+try:
+    from usbTrainer import clsSimulatedTrainer
+except ImportError:
+    clsSimulatedTrainer = None
 
 
-@unittest.skipUnless(WftnpClient is not None, "py-wftnp not installed")
+@unittest.skipUnless(WftnpClient is not None and clsSimulatedTrainer is not None,
+                     "py-wftnp or simulated trainer dependencies not installed")
 class TestSimulatedTrainerWftnp(unittest.IsolatedAsyncioTestCase):
     async def test_simulated_trainer_erg_and_grade_over_tcp(self):
         # This tests the real simulated trainer and transport. The application
