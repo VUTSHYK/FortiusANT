@@ -10,6 +10,10 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "pythoncode"))
+try:
+    from wftnp import WftnpServer
+except ImportError:
+    WftnpServer = None
 from wftnpTransport import WftnpFTMSTransport
 
 SERVICE = bytes.fromhex("0000182600001000800000805f9b34fb")
@@ -27,6 +31,7 @@ async def receive(reader):
     return header, payload
 
 
+@unittest.skipUnless(WftnpServer is not None, "py-wftnp not installed")
 class TestWftnpRawWire(unittest.IsolatedAsyncioTestCase):
     async def test_reference_frames_and_ftms_control(self):
         transport = WftnpFTMSTransport(port=0, interval=0.05)
