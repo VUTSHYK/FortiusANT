@@ -8,6 +8,8 @@
 # 2020-03-02    Firmware.hex added
 # 2020-04-08    Gearbox.jpg added
 
+from PyInstaller.utils.hooks import collect_submodules
+
 block_cipher = None
 
 a = Analysis(['FortiusAnt.py'],
@@ -24,7 +26,7 @@ a = Analysis(['FortiusAnt.py'],
                 ( './tacxfortius_1942_firmware.hex', '.' ),
                 ( './tacximagic_1902_firmware.hex',  '.' )
              ],
-             hiddenimports=[],
+             hiddenimports=collect_submodules('wftnp'),
              hookspath=[],
              runtime_hooks=[],
              excludes=[],
