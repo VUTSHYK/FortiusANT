@@ -1087,7 +1087,10 @@ if constants.UseGui:
             EVT_CHAR_uint(event)
 
         def EVT_CHECKBOX_cb_d (self, event):
-            i = 0
+            try:
+                i = int(self.txt_d.GetValue()) & ~(1 | 2 | 4 | 8 | 16 | 32 | 64 | 8192 | 16384)
+            except ValueError:
+                i = 0
             i |= self.cb_d1. GetValue() *  1
             i |= self.cb_d2. GetValue() *  2
             i |= self.cb_d4. GetValue() *  4
@@ -1102,7 +1105,7 @@ if constants.UseGui:
             if clv.debug == 0 and i != 0: self.cb_restart.SetValue(True)
 
         def EVT_KILL_FOCUS_txt_d (self, event=None):
-            if event: EVT_KILL_FOCUS_int_range(self.txt_d, event, 0, 127, '')
+            if event: EVT_KILL_FOCUS_int_range(self.txt_d, event, 0, 65535, '')
             try:
                 i = int(self.txt_d.GetValue())
             except:
