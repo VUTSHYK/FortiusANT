@@ -37,7 +37,7 @@ class WftnpFTMSTransport:
     """
 
     def __init__(self, bridge=None, *, host="127.0.0.1", port=36866,
-                 on_control_write=None, interval=0.25, idle_timeout=3600):
+                 on_control_write=None, interval=0.25, idle_timeout=3600,\n                 max_connections=4):
         if idle_timeout <= 0:
             raise ValueError('idle_timeout must be positive')
         if interval <= 0:
@@ -49,22 +49,23 @@ class WftnpFTMSTransport:
         self.port = port
         self.interval = interval
         self.idle_timeout = idle_timeout
+        self.max_connections = max_connections
         self.server = None
         self._publisher = None
 
-    async def _handle_control_write(self, data):
+    async def _handle_control_write(self, connection, data):
         """Send the FTMS result as a notification, not as a characteristic value.
 
         WFTNP WRITE acknowledgement confirms transport delivery only.
         """
         result = (self.on_control_write(data) if self.on_control_write is not None
-                  else self.control_point.handle(data))
+                  else self.control_point.handle_connection(connection, data))
         if asyncio.iscoroutine(result):
             result = await result
         if not isinstance(result, bytes) or len(result) != 3 or result[0] != 0x80:
             raise ValueError("control handler must return an FTMS response")
         if self.server is not None:
-            await self.server.notify_characteristic(CONTROL_POINT, result)
+            await self.server.notify_connection(connection, CONTROL_POINT, result)
         return None
 
     async def start(self):
@@ -79,14 +80,14 @@ class WftnpFTMSTransport:
         )
         control = CharacteristicSpec(
             CONTROL_POINT, properties=Props.WRITE | Props.NOTIFY,
-            on_write=self._handle_control_write,
+            on_write_with_connection=self._handle_control_write,
         )
         server = WftnpServer(
             host=self.host, port=self.port,
             services=[ServiceSpec(FTMS_SERVICE, (bike, control))],
-            max_connections=1,
+            max_connections=self.max_connections,
             idle_timeout=self.idle_timeout,
-            on_disconnect=self.control_point.release,
+            on_disconnect_with_connection=self.control_point.release,
         )
         await server.start()
         self.server = server
@@ -110,3 +111,4 @@ class WftnpFTMSTransport:
         server, self.server = self.server, None
         if server is not None:
             await server.stop()
+        self.control_point.release()
