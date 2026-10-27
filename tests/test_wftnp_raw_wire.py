@@ -54,20 +54,20 @@ class TestWftnpRawWire(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(records[BIKE], 0x05)  # READ | NOTIFY
             self.assertEqual(records[CONTROL], 0x06)  # WRITE | NOTIFY
 
-            writer.write(frame(5, 9, CONTROL + b"\\x01"))
+            writer.write(frame(5, 9, CONTROL + b"\x01"))
             await writer.drain()
             h, p = await receive(reader)
             self.assertEqual(h, bytes.fromhex("010509000010"))
             self.assertEqual(p, CONTROL)
 
-            writer.write(frame(4, 10, CONTROL + b"\\x00"))
+            writer.write(frame(4, 10, CONTROL + b"\x00"))
             await writer.drain()
             h, p = await receive(reader)
             self.assertEqual(h, bytes.fromhex("01040a000010"))
             self.assertEqual(p, CONTROL)
             h, p = await receive(reader)
-            self.assertEqual(h[:2], b"\\x01\\x06")
-            self.assertEqual(p, CONTROL + b"\\x80\\x00\\x01")
+            self.assertEqual(h[:2], b"\x01\\x06")
+            self.assertEqual(p, CONTROL + b"\x80\\x00\\x01")
 
             # 250 W is FA 00 (little-endian) inside FTMS, not 00 FA.
             writer.write(frame(4, 11, CONTROL + bytes.fromhex("05fa00")))
@@ -76,7 +76,7 @@ class TestWftnpRawWire(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(h, bytes.fromhex("01040b000010"))
             self.assertEqual(p, CONTROL)
             h, p = await receive(reader)
-            self.assertEqual(h[:2], b"\\x01\\x06")
+            self.assertEqual(h[:2], b"\x01\\x06")
             self.assertEqual(p, CONTROL + bytes.fromhex("800501"))
             command = transport.bridge.take_command()
             self.assertEqual(command.target_power_watts, 250)
