@@ -290,9 +290,17 @@ class CommandLineVariables(object):
         if self.args.wftnpIdleTimeout <= 0:
             parser.error('WFTNP idle timeout must be a positive integer (seconds)')
         self.wftnpIdleTimeout = self.args.wftnpIdleTimeout
-        self.wftnp = bool(self.args.wftnp)
-        self.wftnpHost = self.args.wftnp_host
-        self.wftnpPort = self.args.wftnp_port
+        self.wftnp = self.args.wftnp
+        self.wftnpHost = str(self.args.wftnp_host).strip()
+        try:
+            self.wftnpPort = int(self.args.wftnp_port)
+        except (TypeError, ValueError):
+            parser.error('WFTNP port must be an integer between 1 and 65535')
+        if not self.wftnpHost:
+            parser.error('WFTNP bind host must not be empty')
+        if self.wftnp:
+            self.args.ble = False
+            self.args.bless = False
         if not 1 <= self.wftnpPort <= 65535:
             parser.error('WFTNP port must be between 1 and 65535')
 
