@@ -931,9 +931,17 @@ if constants.UseGui:
             self.cb_d64 = wx.CheckBox(panel, id=wx.ID_ANY, label=l, pos=p, size=s, style=0, validator=wx.DefaultValidator, name=wx.CheckBoxNameStr)
             self.cb_d64.Bind(wx.EVT_CHECKBOX, self.EVT_CHECKBOX_cb_d)
 
+            l = 'WFTNP'
+            p = Under(self.txt_d, 0)
+            # Place WFTNP controls on a separate row to avoid a wider dialog.
+            self.cb_d8192 = wx.CheckBox(panel, label=l, pos=(self.cb_d1.Position[0], self.cb_d1.Position[1] + 27))
+            self.cb_d8192.Bind(wx.EVT_CHECKBOX, self.EVT_CHECKBOX_cb_d)
+            self.cb_d16384 = wx.CheckBox(panel, label='WFTNP raw', pos=RightOf(self.cb_d8192, Yoffset=0))
+            self.cb_d16384.Bind(wx.EVT_CHECKBOX, self.EVT_CHECKBOX_cb_d)
+
             l = constants.help_r + " (-r)"
             s = (-1, -1)
-            p = Under(self.txt_d)
+            p = Under(self.cb_d8192, 12)
             self.cb_r = wx.CheckBox(panel, id=wx.ID_ANY, label=l, pos=p, size=s, style=0, validator=wx.DefaultValidator, name=wx.CheckBoxNameStr)
             
             l = constants.help_s + " (-s *)"
@@ -1087,6 +1095,8 @@ if constants.UseGui:
             i |= self.cb_d16.GetValue() * 16
             i |= self.cb_d32.GetValue() * 32
             i |= self.cb_d64.GetValue() * 64
+            i |= self.cb_d8192.GetValue() * 8192
+            i |= self.cb_d16384.GetValue() * 16384
             self.txt_d.SetValue(str(i))
 
             if clv.debug == 0 and i != 0: self.cb_restart.SetValue(True)
@@ -1104,6 +1114,8 @@ if constants.UseGui:
             self.cb_d16.SetValue(i & 16)
             self.cb_d32.SetValue(i & 32)
             self.cb_d64.SetValue(i & 64)
+            self.cb_d8192.SetValue(bool(i & 8192))
+            self.cb_d16384.SetValue(bool(i & 16384))
 
             if clv.debug == 0 and i != 0: self.cb_restart.SetValue(True)
 
