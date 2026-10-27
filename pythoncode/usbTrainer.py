@@ -1164,6 +1164,7 @@ class clsTacxAntVortexTrainer(clsTacxTrainer):
         self.__AntVTXpaired    = False
         self.__AntVHUpaired    = False
         self.__DeviceNumberVTX = 0              # provided by CHANNEL_ID msg
+        self.WftnpDeviceNumber = 0
         self.__DeviceNumberVHU = 0
 
         self.__Cadence         = 0              # provided by datapage 0
@@ -1410,6 +1411,7 @@ class clsTacxAntVortexTrainer(clsTacxTrainer):
                 if DeviceTypeID == ant.DeviceTypeID_VTX:
                     self.__AntVTXpaired    = True
                     self.__DeviceNumberVTX = DeviceNumber
+                    self.WftnpDeviceNumber = DeviceNumber
                     self.Operational       = True # FortiusAnt can send/receive to brake
 
             #-------------------------------------------------------------------
