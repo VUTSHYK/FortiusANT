@@ -43,7 +43,7 @@ class DiagnosticsTests(unittest.TestCase):
             transport = WftnpFTMSTransport(on_control_write=lambda data: bytes([0x80, data[0], 0x01]))
             transport.server = type("Server", (), {"notify_connection": AsyncMock()})()
             connection = object()
-            await transport._handle_control_write(connection, b"\\x00")
+            await transport._handle_control_write(connection, bytes([0x00]))
             transport.server.notify_connection.assert_awaited_once()
         debug.activate(debug.WFTNP | debug.WFTNP_RAW)
         with patch("wftnpTransport.logfile.Write") as write:
