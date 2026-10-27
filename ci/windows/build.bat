@@ -39,6 +39,9 @@ pip install pyinstaller ^
 python -m pip install --only-binary=wxPython -r requirements.txt ^
   || exit /b 1
 
+python -m pip install --force-reinstall "wftnp[discovery] @ git+https://github.com/VUTSHYK/py-wftnp.git@feature/server-diagnostics" ^
+  || exit /b 1
+
 popd
 exit /b 0
 endlocal
