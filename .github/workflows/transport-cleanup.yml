@@ -45,7 +45,7 @@ jobs:
       - name: Install actual headless runtime dependencies
         run: |
           python -m pip install -r pythoncode/requirementsNoGUI.txt
-          python -m pip install "git+https://github.com/VUTSHYK/py-wftnp.git@af8e46ddedfe9f4cd1e16680676dadd320a77242"
+          python -m pip install "git+https://github.com/VUTSHYK/py-wftnp.git@beccef130d9eb9147334e76ff912c04df58ab91b"
       - name: Import production application and show CLI help
         working-directory: pythoncode
         run: |
@@ -61,7 +61,7 @@ jobs:
         with:
           python-version: '3.11'
       - name: Install py-wftnp
-        run: python -m pip install "git+https://github.com/VUTSHYK/py-wftnp.git@af8e46ddedfe9f4cd1e16680676dadd320a77242"
+        run: python -m pip install "git+https://github.com/VUTSHYK/py-wftnp.git@beccef130d9eb9147334e76ff912c04df58ab91b"
       - name: Verify WFTNP dependency and compile modified modules
         run: |
           python -c "from wftnp import WftnpClient, WftnpServer; print('py-wftnp imports OK')"
