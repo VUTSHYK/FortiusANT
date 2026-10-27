@@ -68,6 +68,8 @@ jobs:
           python -m compileall -q pythoncode/FortiusAntBody.py pythoncode/FortiusAntCommand.py pythoncode/settings.py pythoncode/wftnpRuntime.py
       - name: Run real TCP integration test
         run: python -m unittest discover -s tests -p 'test_wftnp_tcp_integration.py' -v
+      - name: Validate independent raw WFTNP TCP frames
+        run: python -m unittest discover -s tests -p 'test_wftnp_raw_wire.py' -v
       - name: Run threaded server integration test
         run: python -m unittest discover -s tests -p 'test_wftnp_runtime_integration.py' -v
       - name: Install simulated trainer runtime dependencies
