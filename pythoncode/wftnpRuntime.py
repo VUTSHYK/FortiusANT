@@ -3,24 +3,58 @@
 The FortiusANT trainer loop never performs network I/O.
 """
 import asyncio
+import socket
 import threading
 
 from ftmsWftnpAdapter import FTMSWftnpAdapter
 from wftnpTransport import WftnpFTMSTransport
 
 
+def lan_address(host):
+    """Find the IPv4 address used for outbound LAN traffic without sending data."""
+    if host not in ("0.0.0.0", "::"):
+        return None if host.startswith("127.") or host == "::1" else host
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
+        sock.connect(("192.0.2.1", 80))
+        address = sock.getsockname()[0]
+    if address.startswith("127.") or address == "0.0.0.0":
+        raise OSError("No LAN IPv4 address available for WFTNP mDNS")
+    return address
+
+
 class WftnpRuntime:
     def __init__(self, *, host="0.0.0.0", port=36866, idle_timeout=3600):
+        # Loopback tests remain TCP-only; LAN startup must have a routable address.
+        address = lan_address(host)
         self.adapter = FTMSWftnpAdapter()
         self.transport = WftnpFTMSTransport(
             bridge=self.adapter.bridge, host=host, port=port,
-            idle_timeout=idle_timeout,
+            idle_timeout=idle_timeout, mdns_address=address,
         )
         self._thread = None
         self._loop = None
         self._stop = None
         self._ready = threading.Event()
         self._error = None
+        self._mdns_name = "Tacx Vortex"
+
+    def set_trainer_identity(self, name):
+        """Called from FortiusANT's ANT+ trainer loop, never blocking on mDNS."""
+        if not name or name == self._mdns_name:
+            return
+        self._mdns_name = name
+        loop = self._loop
+        if loop is not None and loop.is_running():
+            future = asyncio.run_coroutine_threadsafe(
+                self.transport.update_mdns_name(name), loop
+            )
+            def report_error(done):
+                try:
+                    done.result()
+                except Exception:
+                    import logging
+                    logging.getLogger(__name__).exception("WFTNP mDNS name update failed")
+            future.add_done_callback(report_error)
 
     def start(self, timeout=10):
         if self._thread is not None:
