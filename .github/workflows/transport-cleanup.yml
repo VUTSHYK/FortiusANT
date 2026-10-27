@@ -29,6 +29,29 @@ jobs:
         run: python -m unittest discover -s tests -v
 
 
+  application-smoke:
+    name: App startup smoke (${{ matrix.os }}, Python ${{ matrix.python-version }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, ubuntu-24.04-arm]
+        python-version: ['3.11', '3.12', '3.13']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install actual headless runtime dependencies
+        run: |
+          python -m pip install -r pythoncode/requirementsNoGUI.txt
+          python -m pip install "git+https://github.com/VUTSHYK/py-wftnp.git@af8e46ddedfe9f4cd1e16680676dadd320a77242"
+      - name: Import production application and show CLI help
+        working-directory: pythoncode
+        run: |
+          python -c "import FortiusAnt, FortiusAntBody, FortiusAntCommand, settings, wftnpRuntime; print('Production imports OK')"
+          python FortiusAnt.py --help
+
   wftnp-tcp:
     name: WFTNP TCP integration (Ubuntu, Python 3.11)
     runs-on: ubuntu-latest
