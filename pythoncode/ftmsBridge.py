@@ -73,6 +73,12 @@ class FTMSBridge:
         except Full as exc:
             raise OverflowError("FTMS command queue is full") from exc
 
+    def discard_commands(self):
+        """Discard commands pending when control ownership is released."""
+        with self._commands.mutex:
+            self._commands.queue.clear()
+            self._commands.not_full.notify_all()
+
     def take_command(self):
         try:
             return self._commands.get_nowait()
