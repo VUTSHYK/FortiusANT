@@ -42,18 +42,13 @@ class TestWftnpMdns(unittest.IsolatedAsyncioTestCase):
                 await transport.stop()
             self.assertEqual(stop.await_count, 2)
 
-    async def test_failed_advertisement_keeps_tcp_available(self):
+    async def test_failed_advertisement_closes_tcp(self):
         with patch.object(ServerAdvertisement, "start", new_callable=AsyncMock,
                           side_effect=RuntimeError("mDNS failed")):
             transport = WftnpFTMSTransport(
                 host="127.0.0.1", port=0, mdns_address="192.168.1.20")
-            await transport.start()
-            try:
-                self.assertIsNotNone(transport.server)
-                self.assertGreater(transport.server.port, 0)
-                self.assertIsNone(transport._advertisement)
-            finally:
-                await transport.stop()
+            with self.assertRaisesRegex(RuntimeError, "mDNS failed"):
+                await transport.start()
             self.assertIsNone(transport.server)
 
 
