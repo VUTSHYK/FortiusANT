@@ -256,7 +256,6 @@ import steering
 import TCXexport
 import usbTrainer
 
-import bleBless
 from wftnpRuntime import WftnpRuntime
 
 PrintWarnings = False   # Print warnings even when logging = off
@@ -281,11 +280,11 @@ def Initialize(pclv):
     # --------------------------------------------------------------------------
     if clv.ble or clv.bless:
         clv.ble = True
+        import bleBless
         bleCTP = bleBless.clsFTMS_bless(True)  # Native Python BLE only
     else:
-        bleCTP = bleBless.clsFTMS_bless(False) # Create data structure,
-                                                # e.g. so that .Message exists
-                                                # No methods may be called
+        from types import SimpleNamespace
+        bleCTP = SimpleNamespace(Message='')  # BLE disabled: no Bless dependency
 
 # ------------------------------------------------------------------------------
 # The opposite, hoping that this will properly release USB device, see #203
