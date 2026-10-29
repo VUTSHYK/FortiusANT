@@ -278,7 +278,7 @@ def Initialize(pclv):
     # --------------------------------------------------------------------------
     # Create Bluetooth Low Energy interface
     # --------------------------------------------------------------------------
-    if clv.ble or clv.bless:
+    if clv.ble:
         clv.ble = True
         import bleBless
         bleCTP = bleBless.clsFTMS_bless(True)  # Native Python BLE only
