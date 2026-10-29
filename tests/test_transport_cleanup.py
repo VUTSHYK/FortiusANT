@@ -28,7 +28,8 @@ class TransportCleanupTests(unittest.TestCase):
         self.assertNotIn("bleDongle", body + main)
         self.assertNotIn("dircon_server", body + main)
         self.assertIn("bleBless.clsFTMS_bless(True)", body)
-        self.assertIn("if clv.ble or clv.bless:", body)
+        self.assertIn("if clv.ble:", body)
+        self.assertNotIn("clv.bless", body)
 
     def test_bless_uses_python_library_not_node(self):
         for name in ("bleBless.py", "bleBlessClass.py"):
