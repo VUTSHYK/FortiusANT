@@ -113,9 +113,10 @@ class WftnpFTMSTransport:
         try:
             if self.mdns_address is not None:
                 await self.update_mdns_name(self.mdns_name)
-        except Exception as exc:
-            _diagnostic("mDNS advertisement failed; TCP remains available: %s" % exc)
-            logfile.Console("WFTNP mDNS advertisement failed; TCP remains available: %s" % exc)
+        except BaseException:
+            self.server = None
+            await server.stop()
+            raise
         self._publisher = asyncio.create_task(self._publish_loop())
 
     async def update_mdns_name(self, name):
