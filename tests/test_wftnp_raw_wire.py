@@ -68,7 +68,7 @@ class TestWftnpRawWire(unittest.IsolatedAsyncioTestCase):
             # Explicit Zwift unsubscribe must not affect the legacy connection.
             zwift_reader, zwift_writer = clients[1]
             # Telemetry can be queued before the unsubscribe acknowledgement.
-            zwift_writer.write(frame(5, 6, BIKE + b"\\x00"))
+            zwift_writer.write(frame(5, 6, BIKE + b"\x00"))
             await zwift_writer.drain()
             for _ in range(20):
                 header, response = await receive(zwift_reader)
