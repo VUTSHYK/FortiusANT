@@ -9,8 +9,16 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "pythoncode"))
-sys.modules.setdefault('lib_programname', types.ModuleType('lib_programname'))
-import settings
+# The CI environment may not install lib_programname. Keep the fallback
+# scoped to the settings import so it cannot shadow the real package for
+# subsequent tests (notably usbTrainer / simulated trainer integration).
+try:
+    import lib_programname
+except ImportError:
+    with patch.dict(sys.modules, {'lib_programname': types.ModuleType('lib_programname')}):
+        import settings
+else:
+    import settings
 
 
 class TestWftnpSettings(unittest.TestCase):
