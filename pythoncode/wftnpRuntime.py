@@ -96,8 +96,21 @@ class WftnpRuntime:
             self._error = exc
             self._ready.set()
         finally:
-            loop.close()
-            self._loop = None
+            # Zeroconf can schedule broadcasts that outlive unregister/close.
+            # Drain remaining tasks before closing the dedicated event loop.
+            try:
+                pending = [task for task in asyncio.all_tasks(loop) if not task.done()]
+                for task in pending:
+                    task.cancel()
+                if pending:
+                    loop.run_until_complete(
+                        asyncio.gather(*pending, return_exceptions=True)
+                    )
+                loop.run_until_complete(loop.shutdown_asyncgens())
+                loop.run_until_complete(loop.shutdown_default_executor())
+            finally:
+                loop.close()
+                self._loop = None
 
     def stop(self, timeout=10):
         thread = self._thread
