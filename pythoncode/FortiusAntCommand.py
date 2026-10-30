@@ -346,9 +346,10 @@ class CommandLineVariables(object):
         # Booleans; either True or False
         #-----------------------------------------------------------------------
         self.autostart              = self.args.autostart
-        if UseBluetooth:
-            self.ble                = False                 # Node/Bleno removed; -b is a Bless alias
-            self.bless              = self.args.bless or self.args.ble  # -b and -bb use Bless
+        # Keep BLE settings present even on platforms/builds without Bluetooth.
+        # The GUI settings dialog reads both attributes unconditionally.
+        self.ble                    = False                 # Node/Bleno removed; -b is a Bless alias
+        self.bless                  = bool(getattr(self.args, 'bless', False) or getattr(self.args, 'ble', False)) if UseBluetooth else False
         if UseGui:
             self.gui                = self.args.gui
         self.homeTrainer            = self.args.homeTrainer # Exersize Bike
