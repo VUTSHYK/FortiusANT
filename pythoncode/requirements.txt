@@ -7,4 +7,4 @@ requests
 service_identity
 wxPython
 wheel
-wftnp[discovery] @ git+https://github.com/VUTSHYK/py-wftnp.git@4cd885df0558c6902c2fdac9f7635a5e86857ba3
+wftnp[discovery] @ git+https://github.com/VUTSHYK/py-wftnp.git@174c318a6a9901a575b226e77c9d7532f6ebc581
