@@ -9,13 +9,17 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "pythoncode"))
 
 from ftmsBridge import TrainerTelemetry
-from wftnpTransport import WftnpFTMSTransport, encode_indoor_bike_data
+from wftnpTransport import WftnpFTMSTransport, encode_indoor_bike_data, encode_heart_rate
 
 
 class TestWftnpTransport(unittest.TestCase):
     def test_bike_data_units_and_flags(self):
         data = encode_indoor_bike_data(TrainerTelemetry(31.25, 87.5, 235))
         self.assertEqual(struct.unpack("<HHHh", data), (0x0044, 3125, 175, 235))
+
+    def test_heart_rate_measurement(self):
+        self.assertEqual(encode_heart_rate(TrainerTelemetry(0, 0, 0, 147)), b"\x00\x93")
+        self.assertEqual(encode_heart_rate(TrainerTelemetry(0, 0, 0, 0)), b"\x00\x00")
 
     def test_power_is_signed(self):
         data = encode_indoor_bike_data(TrainerTelemetry(0, 0, -20))
