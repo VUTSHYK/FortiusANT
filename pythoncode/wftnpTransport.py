@@ -24,6 +24,16 @@ def _diagnostic(message, *, raw=False):
 FTMS_SERVICE = UUID("00001826-0000-1000-8000-00805f9b34fb")
 INDOOR_BIKE_DATA = UUID("00002ad2-0000-1000-8000-00805f9b34fb")
 CONTROL_POINT = UUID("00002ad9-0000-1000-8000-00805f9b34fb")
+FITNESS_MACHINE_FEATURE = UUID("00002acc-0000-1000-8000-00805f9b34fb")
+SUPPORTED_POWER_RANGE = UUID("00002ad8-0000-1000-8000-00805f9b34fb")
+HEART_RATE_SERVICE = UUID("0000180d-0000-1000-8000-00805f9b34fb")
+HEART_RATE_MEASUREMENT = UUID("00002a37-0000-1000-8000-00805f9b34fb")
+
+
+def encode_heart_rate(telemetry):
+    """Heart Rate Measurement: uint8 BPM, flags=0."""
+    return struct.pack("<BB", 0, max(0, min(255, int(telemetry.heart_rate_bpm))))
+
 
 
 def encode_indoor_bike_data(telemetry):
@@ -99,9 +109,24 @@ class WftnpFTMSTransport:
             CONTROL_POINT, properties=Props.WRITE | Props.INDICATE,
             on_write_with_connection=self._handle_control_write,
         )
+        feature = CharacteristicSpec(
+            FITNESS_MACHINE_FEATURE, properties=Props.READ,
+            value=struct.pack("<II", 0x4002, 0x2008),
+        )
+        power_range = CharacteristicSpec(
+            SUPPORTED_POWER_RANGE, properties=Props.READ,
+            value=struct.pack("<HHH", 0, 1000, 1),
+        )
+        heart_rate = CharacteristicSpec(
+            HEART_RATE_MEASUREMENT, properties=Props.NOTIFY,
+            value=encode_heart_rate(self.bridge.get_telemetry()),
+        )
         server = WftnpServer(
             host=self.host, port=self.port,
-            services=[ServiceSpec(FTMS_SERVICE, (bike, control))],
+            services=[
+                ServiceSpec(FTMS_SERVICE, (feature, bike, control, power_range)),
+                ServiceSpec(HEART_RATE_SERVICE, (heart_rate,)),
+            ],
             max_connections=self.max_connections,
             idle_timeout=self.idle_timeout,
             on_disconnect_with_connection=self.control_point.release,
@@ -145,6 +170,9 @@ class WftnpFTMSTransport:
                 payload = encode_indoor_bike_data(self.bridge.get_telemetry())
                 self.server.registry.characteristic_for(INDOOR_BIKE_DATA).value = payload
                 await self.server.notify_characteristic(INDOOR_BIKE_DATA, payload)
+                heart_payload = encode_heart_rate(self.bridge.get_telemetry())
+                self.server.registry.characteristic_for(HEART_RATE_MEASUREMENT).value = heart_payload
+                await self.server.notify_characteristic(HEART_RATE_MEASUREMENT, heart_payload)
         except asyncio.CancelledError:
             raise
 
