@@ -35,6 +35,6 @@ jobs:
       - name: Install DIRCON library and test dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install 'git+https://github.com/VUTSHYK/py-wftnp.git@174c318a6a9901a575b226e77c9d7532f6ebc581'
+          python -m pip install 'git+https://github.com/VUTSHYK/py-wftnp.git@8598e1aa3b1cd6ac781a44379875a86f59d8538b'
       - name: Run all repository unittest tests
         run: python -m unittest discover -s tests -p 'test_*.py' -v
