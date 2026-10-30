@@ -96,7 +96,7 @@ class WftnpFTMSTransport:
             value=encode_indoor_bike_data(self.bridge.get_telemetry()),
         )
         control = CharacteristicSpec(
-            CONTROL_POINT, properties=Props.WRITE | Props.NOTIFY,
+            CONTROL_POINT, properties=Props.WRITE | Props.INDICATE,
             on_write_with_connection=self._handle_control_write,
         )
         server = WftnpServer(
