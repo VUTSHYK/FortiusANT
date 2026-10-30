@@ -47,7 +47,7 @@ class TestWftnpRawWire(unittest.IsolatedAsyncioTestCase):
         await transport.start()
         clients = []
         try:
-            for sequence, payload in ((0, BIKE), (5, BIKE + b"\\x01")):
+            for sequence, payload in ((0, BIKE), (5, BIKE + b"\x01")):
                 reader, writer = await asyncio.open_connection(
                     "127.0.0.1", transport.server.port
                 )
@@ -67,7 +67,7 @@ class TestWftnpRawWire(unittest.IsolatedAsyncioTestCase):
 
             # Explicit Zwift unsubscribe must not affect the legacy connection.
             zwift_reader, zwift_writer = clients[1]
-            zwift_writer.write(frame(5, 6, BIKE + b"\\x00"))
+            zwift_writer.write(frame(5, 6, BIKE + b"\x00"))
             await zwift_writer.drain()
             header, response = await receive(zwift_reader)
             self.assertEqual(header, frame(5, 6, BIKE)[:6])
