@@ -41,6 +41,49 @@ async def receive_control_exchange(reader, sequence, expected_result):
 
 @unittest.skipUnless(WftnpServer is not None, "py-wftnp not installed")
 class TestWftnpRawWire(unittest.IsolatedAsyncioTestCase):
+    async def test_trainingpeaks_legacy_and_zwift_explicit_subscribe(self):
+        """Both observed WFTNP subscription formats receive FTMS telemetry."""
+        transport = WftnpFTMSTransport(port=0, interval=0.02)
+        await transport.start()
+        clients = []
+        try:
+            for sequence, payload in ((0, BIKE), (5, BIKE + b"\\x01")):
+                reader, writer = await asyncio.open_connection(
+                    "127.0.0.1", transport.server.port
+                )
+                clients.append((reader, writer))
+                writer.write(frame(5, sequence, payload))
+                await writer.drain()
+                header, response = await receive(reader)
+                self.assertEqual(header, frame(5, sequence, BIKE)[:6])
+                self.assertEqual(response, BIKE)
+
+            transport.bridge.set_trainer_data(30, 90, 200)
+            for reader, _writer in clients:
+                header, data = await receive(reader)
+                self.assertEqual(header[1], 6)
+                self.assertEqual(data[:16], BIKE)
+                self.assertTrue(any(byte != 0 for byte in data[16:]))
+
+            # Explicit Zwift unsubscribe must not affect the legacy connection.
+            zwift_reader, zwift_writer = clients[1]
+            zwift_writer.write(frame(5, 6, BIKE + b"\\x00"))
+            await zwift_writer.drain()
+            header, response = await receive(zwift_reader)
+            self.assertEqual(header, frame(5, 6, BIKE)[:6])
+            self.assertEqual(response, BIKE)
+            legacy_reader, _ = clients[0]
+            header, data = await receive(legacy_reader)
+            self.assertEqual(header[1], 6)
+            self.assertEqual(data[:16], BIKE)
+            with self.assertRaises(asyncio.TimeoutError):
+                await asyncio.wait_for(zwift_reader.readexactly(6), 0.1)
+        finally:
+            for _reader, writer in clients:
+                writer.close()
+                await writer.wait_closed()
+            await transport.stop()
+
     async def test_reference_frames_and_ftms_control(self):
         transport = WftnpFTMSTransport(port=0, interval=0.05)
         await transport.start()
