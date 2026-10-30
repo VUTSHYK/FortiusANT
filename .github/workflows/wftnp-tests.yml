@@ -34,6 +34,6 @@ jobs:
       - name: Install DIRCON library and test dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install 'git+https://github.com/VUTSHYK/py-wftnp.git@feature/dircon-ftms-compatibility'
+          python -m pip install 'git+https://github.com/VUTSHYK/py-wftnp.git@d3d5a6e40e20cf8cc8b0c7b47ea9ed7314fcd6fe'
       - name: Run all repository unittest tests
         run: python -m unittest discover -s tests -p 'test_*.py' -v
