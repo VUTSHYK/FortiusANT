@@ -84,4 +84,6 @@ If you like to use FortiusAnt; please leave a note on the [put yourself on the F
 
 ### Before merging WFTNP into master
 
-- [ ] Revisit the `py-wftnp` dependency in both `pythoncode/requirements.txt` and `pythoncode/requirementsNoGUI.txt`. It is currently pinned to commit `af8e46ddedfe9f4cd1e16680676dadd320a77242` (which matched `VUTSHYK/py-wftnp` `master` on 2026-10-27). Decide whether to switch to a stable release/tag or the current `master`, update both files consistently, and rerun WFTNP integration and Python compatibility tests before merging FortiusANT.
+- [x] Pin both runtime requirements files and WFTNP CI to the same tested py-wftnp revision: `6276c7a488f076351618b4f541742489cf8456e9`.
+- [ ] Verify a clean installation with `python -m pip install -r pythoncode/requirementsNoGUI.txt` on Raspberry Pi (Python 3.11), including the `discovery` extra for mDNS.
+- [ ] Validate a live Tacx Vortex to Zwift WFTNP session before merging.
