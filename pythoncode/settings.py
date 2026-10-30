@@ -196,9 +196,9 @@ def ReadJsonFile (args):
 
                 elif p == json_Bluetooth:
                     for q in data[json_Bluetooth]:
-                        if   q == json_ble:                 args.bless                = args.bless or bool(w[q])  # migrate old BLE setting
-                        elif q == json_nodejs:              args.bless                = args.bless or bool(w[q])  # migrate old Node setting
-                        elif q == json_bless:               args.bless                = args.bless or bool(w[q])
+                        if   q == json_ble:                 args.bless                = getattr(args, 'bless', False) or bool(w[q])  # migrate old BLE setting
+                        elif q == json_nodejs:              args.bless                = getattr(args, 'bless', False) or bool(w[q])  # migrate old Node setting
+                        elif q == json_bless:               args.bless                = getattr(args, 'bless', False) or bool(w[q])
                         elif q == json_wftnpIdleTimeout:    args.wftnpIdleTimeout     = w[q]
                         elif q == json_wftnp:               args.wftnp                = w[q]
                         elif q == json_wftnpHost:           args.wftnp_host           = w[q]
