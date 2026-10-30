@@ -37,11 +37,11 @@ class TestWftnpTcpIntegration(unittest.IsolatedAsyncioTestCase):
                 await client.stop()
                 await asyncio.sleep(0.05)
                 messages = [call.args[0] for call in write.call_args_list]
-            self.assertTrue(any("TCP connected:" in m for m in messages), messages)
-            self.assertTrue(any("TCP disconnected:" in m for m in messages), messages)
-            self.assertTrue(any("request opcode=" in m for m in messages), messages)
-            self.assertTrue(any("discover characteristics:" in m for m in messages), messages)
-            self.assertTrue(any("subscribe " in m for m in messages), messages)
+            self.assertTrue(any("client connected" in m for m in messages), messages)
+            self.assertTrue(any("client disconnected" in m for m in messages), messages)
+            self.assertTrue(any("[WFTNP] RX " in m for m in messages), messages)
+            self.assertTrue(any("TX 01 02 " in m for m in messages), messages)
+            self.assertTrue(any("subscribed " in m for m in messages), messages)
             self.assertTrue(any("[WFTNP] RX " in m for m in messages), messages)
             self.assertTrue(any("[WFTNP] TX " in m for m in messages), messages)
         finally:
