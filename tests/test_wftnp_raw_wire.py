@@ -67,17 +67,33 @@ class TestWftnpRawWire(unittest.IsolatedAsyncioTestCase):
 
             # Explicit Zwift unsubscribe must not affect the legacy connection.
             zwift_reader, zwift_writer = clients[1]
-            zwift_writer.write(frame(5, 6, BIKE + b"\x00"))
+            # Notifications can arrive before the SUBSCRIBE acknowledgement.
+            # Drain existing telemetry before sending unsubscribe.
+            while True:
+                try:
+                    await asyncio.wait_for(receive(zwift_reader), 0.04)
+                except asyncio.TimeoutError:
+                    break
+            zwift_writer.write(frame(5, 6, BIKE + b"\\x00"))
             await zwift_writer.drain()
-            header, response = await receive(zwift_reader)
-            self.assertEqual(header, frame(5, 6, BIKE)[:6])
-            self.assertEqual(response, BIKE)
+            for _ in range(20):
+                header, response = await receive(zwift_reader)
+                if header[1] == 5 and header[2] == 6:
+                    self.assertEqual(header, frame(5, 6, BIKE)[:6])
+                    self.assertEqual(response, BIKE)
+                    break
+                self.assertEqual(header[1], 6)
+                self.assertEqual(response[:16], BIKE)
+            else:
+                self.fail("Unsubscribe acknowledgement not received")
             legacy_reader, _ = clients[0]
             header, data = await receive(legacy_reader)
             self.assertEqual(header[1], 6)
             self.assertEqual(data[:16], BIKE)
+            # A queued notification may race with unsubscribe; after the
+            # acknowledgement no new telemetry should be emitted.
             with self.assertRaises(asyncio.TimeoutError):
-                await asyncio.wait_for(zwift_reader.readexactly(6), 0.1)
+                await asyncio.wait_for(receive(zwift_reader), 0.1)
         finally:
             for _reader, writer in clients:
                 writer.close()
