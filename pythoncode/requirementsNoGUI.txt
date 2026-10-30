@@ -6,4 +6,4 @@ pyusb
 requests
 service_identity
 wheel
-wftnp[discovery] @ git+https://github.com/VUTSHYK/py-wftnp.git@feature/server-diagnostics
+wftnp[discovery] @ git+https://github.com/VUTSHYK/py-wftnp.git@6276c7a488f076351618b4f541742489cf8456e9
