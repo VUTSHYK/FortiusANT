@@ -119,7 +119,7 @@ class TestWftnpTransport(unittest.TestCase):
                     self.assertEqual(len(heart), 1)
                     self.assertEqual(heart[0].uuid, HEART_RATE_MEASUREMENT)
                     self.assertEqual(heart[0].properties, Props.NOTIFY)
-                    self.assertEqual(heart[0].value, b"\\x00\\x00")
+                    self.assertEqual(heart[0].value, bytes((0,0)))
                 finally:
                     await transport.stop()
 
@@ -127,9 +127,9 @@ class TestWftnpTransport(unittest.TestCase):
 
     def test_heart_rate_clamping(self):
         self.assertEqual(encode_heart_rate(TrainerTelemetry(0, 0, 0, 300)),
-                         b"\\x00\\xff")
+                         bytes((0,255)))
         self.assertEqual(encode_heart_rate(TrainerTelemetry(0, 0, 0, -5)),
-                         b"\\x00\\x00")
+                         bytes((0,0)))
 
     def test_invalid_interval(self):
         with self.assertRaises(ValueError):
