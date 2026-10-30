@@ -56,11 +56,12 @@ class TestWftnpRawWire(unittest.IsolatedAsyncioTestCase):
             writer.write(frame(2, 8, SERVICE))
             await writer.drain()
             h, p = await receive(reader)
-            self.assertEqual(h, bytes.fromhex("010208000032"))
+            self.assertEqual(h, bytes((1, 2, 8, 0)) + len(p).to_bytes(2, "big"))
+            self.assertEqual(len(p), 16 + 4 * 17)  # FTMS has four characteristics
             self.assertEqual(p[:16], SERVICE)
             records = {p[i:i+16]: p[i+16] for i in range(16, len(p), 17)}
             self.assertEqual(records[BIKE], 0x05)  # READ | NOTIFY
-            self.assertEqual(records[CONTROL], 0x06)  # WRITE | NOTIFY
+            self.assertEqual(records[CONTROL], 0x0a)  # WRITE | INDICATE
 
             writer.write(frame(5, 9, CONTROL + b"\x01"))
             await writer.drain()
