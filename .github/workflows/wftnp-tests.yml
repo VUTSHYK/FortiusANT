@@ -3,7 +3,7 @@ name: WFTNP compatibility tests
 on:
   push:
     branches:
-      - feature/dircon-ftms-compatibility
+      - master
     paths:
       - 'pythoncode/wftnpTransport.py'
       - 'pythoncode/ftmsBridge.py'
@@ -35,6 +35,6 @@ jobs:
       - name: Install DIRCON library and test dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install 'git+https://github.com/VUTSHYK/py-wftnp.git@9a850890f433779865b36a9dbb7198294d5b5f6e'
+          python -m pip install 'git+https://github.com/VUTSHYK/py-wftnp.git@master'
       - name: Run all repository unittest tests
         run: python -m unittest discover -s tests -p 'test_*.py' -v
